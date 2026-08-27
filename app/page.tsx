@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere } from "./atmosphere";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
+const EarthView = lazy(() => import("./earth-view"));
 
 const projects = [
   { n: "01", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
@@ -70,17 +71,35 @@ function ProjectRow({ item }: { item: typeof projects[number] }) {
 
 export default function Home() {
   const [active, setActive] = useState("about");
+  const [earthOpen, setEarthOpen] = useState(false);
+  const [earthMounted, setEarthMounted] = useState(false);
   const { city, setCity, weather, atmosphere } = useCityAtmosphere();
   useEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { rootMargin: "-20% 0px -65%" });
     sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
     return () => observer.disconnect();
   }, []);
+  const toggleEarth = () => {
+    if (earthOpen) setEarthOpen(false);
+    else { setEarthMounted(true); requestAnimationFrame(() => setEarthOpen(true)); }
+  };
+  useEffect(() => {
+    if (!earthMounted) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setEarthOpen(false); };
+    addEventListener("keydown", close);
+    return () => removeEventListener("keydown", close);
+  }, [earthMounted]);
+  useEffect(() => {
+    if (earthOpen || !earthMounted) return;
+    const timer = setTimeout(() => setEarthMounted(false), 1250);
+    return () => clearTimeout(timer);
+  }, [earthOpen, earthMounted]);
 
   return <>
     <AtmosphereBackground atmosphere={atmosphere} />
-    <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} />} />
-    <main>
+    <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} earthOpen={earthOpen} onToggleEarth={toggleEarth} onPreloadEarth={() => import("./earth-view")} />} />
+    {earthMounted && <Suspense fallback={<div className="earth-view earth-loading" aria-hidden />}><EarthView city={city} active={earthOpen} /></Suspense>}
+    <main aria-hidden={earthMounted || undefined}>
       <section id="about" className="hero reveal">
         <p className="eyebrow mono">Ben Huffman · Internet homepage</p>
         <h1>Hey, I’m Ben<span className="serif">.</span></h1>
