@@ -30,6 +30,14 @@ const research = [
   { n: "03", title: "Contra Labs Research", meta: "Ongoing · Research", href: "https://contra.com/labs" },
 ];
 
+const datasets = [
+  { n: "01", title: "Human Creativity Benchmark", href: "https://huggingface.co/datasets/contra-labs/HumanCreativityBenchmark" },
+  { n: "02", title: "Video Detail Annotation", href: "https://huggingface.co/datasets/contra-labs/video-detail-annotation" },
+  { n: "03", title: "Creative Photoshop Design Trajectories", href: "https://huggingface.co/datasets/contra-labs/creative-photoshop-design-trajectories" },
+  { n: "04", title: "Firefly Creative Campaign Trajectories", href: "https://huggingface.co/datasets/contra-labs/firefly-creative-campaign-trajectories" },
+  { n: "05", title: "Gemini Creative Campaign Trajectories", href: "https://huggingface.co/datasets/contra-labs/gemini-creative-campaign-trajectories" },
+];
+
 function Arrow() { return <span className="arrow" aria-hidden>↗</span>; }
 
 function ContraLogo({ labs = false }: { labs?: boolean }) {
@@ -88,6 +96,8 @@ export default function Home() {
       <section id="research" className="reveal">
         <div className="section-head"><p className="section-label mono">02 / Publications</p><h2>Research</h2></div>
         <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono">{r.meta} <Arrow /></span></a>)}</div>
+        <div className="dataset-head"><p className="section-label mono">Contra Labs / Open data</p><h3>Datasets</h3></div>
+        <div className="research-list dataset-list">{datasets.map(dataset => <a href={dataset.href} target="_blank" rel="noreferrer" key={dataset.n} className="research-row dataset-row"><span className="mono">{dataset.n}</span><strong>{dataset.title}</strong><span className="research-meta mono">Hugging Face <Arrow /></span></a>)}</div>
       </section>
 
       <section id="investments" className="reveal">
