@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
@@ -62,7 +62,11 @@ function ProjectRow({ item }: { item: typeof projects[number] }) {
   const [open, setOpen] = useState(false);
   const src = `https://player.vimeo.com/video/${item.id}${item.hash ? `?h=${item.hash}` : ""}`;
   return <div className={`project ${open ? "is-open" : ""}`}>
-    <button className="project-row" onClick={() => setOpen(!open)} aria-expanded={open}>
+    <button className="project-row" data-space-effect="frame" onClick={(event) => {
+      const next = !open, rect = event.currentTarget.getBoundingClientRect();
+      window.dispatchEvent(new CustomEvent("space-interaction", { detail: { type: "project", x: rect.left + rect.width * .62, y: rect.top + rect.height * .5, open: next } }));
+      setOpen(next);
+    }} aria-expanded={open}>
       <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="mono date">{item.date}</span><span className="toggle">{open ? "−" : "+"}</span>
     </button>
     <div className="video-shell">{open && <div className="video"><iframe src={src} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen title={item.title} loading="lazy" /></div>}</div>
@@ -79,6 +83,30 @@ export default function Home() {
     sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
     return () => observer.disconnect();
   }, []);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".hero > :not(.hero-notes), .hero-notes, .statement > *, .section-head, .subhead, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
+    targets.forEach((target, index) => {
+      target.classList.add("motion-item");
+      if (target.matches(".research-row,.index-row,.project")) target.classList.add("motion-row");
+      target.style.setProperty("--motion-delay", `${Math.min(index % 5, 4) * 34}ms`);
+    });
+    root.classList.add("motion-ready");
+    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
+    }), { rootMargin: "0px 0px -7%", threshold: .06 });
+    targets.forEach(target => observer.observe(target));
+    let progressFrame = 0;
+    const updateProgress = () => {
+      progressFrame = 0;
+      const available = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+      root.style.setProperty("--page-progress", String(Math.min(1, Math.max(0, scrollY / available))));
+    };
+    const onScroll = () => { if (!progressFrame) progressFrame = requestAnimationFrame(updateProgress); };
+    const sizeObserver = new ResizeObserver(onScroll); sizeObserver.observe(document.body);
+    updateProgress(); addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll, { passive: true });
+    return () => { observer.disconnect(); sizeObserver.disconnect(); removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); if (progressFrame) cancelAnimationFrame(progressFrame); root.classList.remove("motion-ready"); root.style.removeProperty("--page-progress"); };
+  }, []);
   useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
   const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
   useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
@@ -93,9 +121,9 @@ export default function Home() {
         <h1>Hey, I’m Ben<span className="serif">.</span></h1>
         <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
         <div className="hero-socials" aria-label="Social links">
-          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" aria-label="Ben Huffman on X"><span aria-hidden>X</span></a>
-          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" aria-label="Ben Huffman on LinkedIn"><span className="linkedin-icon" aria-hidden>in</span></a>
-          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" aria-label="Ben Huffman on Contra"><ContraMark /></a>
+          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on X"><span aria-hidden>X</span></a>
+          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on LinkedIn"><span className="linkedin-icon" aria-hidden>in</span></a>
+          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on Contra"><ContraMark /></a>
         </div>
         <div className="hero-notes mono"><span>Founder × Creative × Researcher × Investor</span></div>
       </section>
@@ -104,14 +132,14 @@ export default function Home() {
         <p className="section-label mono">01 / Currently</p>
         <p className="large-copy">I am building <ExternalLink href="https://contra.com/">Contra</ExternalLink> and <ExternalLink href="https://contra.com/labs">Contra Labs</ExternalLink> to help creativity meet opportunity globally. Contra supports millions of users earning $250M+ per year in 180+ countries.</p>
         <div className="link-pair">
-          <a href="https://contra.com/" target="_blank" rel="noreferrer"><strong><ContraLogo /><Arrow /></strong><span>Independent work infrastructure</span></a>
-          <a href="https://contra.com/labs" target="_blank" rel="noreferrer"><strong><ContraLogo labs /><Arrow /></strong><span>Human data + RL infrastructure for creative AI</span></a>
+          <a href="https://contra.com/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo /><Arrow /></strong><span>Independent work infrastructure</span></a>
+          <a href="https://contra.com/labs" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo labs /><Arrow /></strong><span>Human data + RL infrastructure for creative AI</span></a>
         </div>
       </section>
 
       <section id="research" className="reveal">
         <div className="section-head"><p className="section-label mono">02 / Research + data</p><h2>Research</h2></div>
-        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono"><span>{r.meta} <Arrow /></span>{r.stats && <span className="research-stats">{r.stats}</span>}</span></a>)}</div>
+        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row" data-space-effect="orbit"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono"><span>{r.meta} <Arrow /></span>{r.stats && <span className="research-stats">{r.stats}</span>}</span></a>)}</div>
       </section>
 
       <section id="investments" className="reveal">
@@ -128,9 +156,9 @@ export default function Home() {
       <section id="contact" className="reveal contact">
         <div className="section-head"><p className="section-label mono">05 / Get in touch</p><h2>Contact</h2></div>
         <div className="socials">
-          <a href="https://x.com/contraben" target="_blank" rel="noreferrer"><strong>X <Arrow /></strong><span>x.com/contraben</span></a>
-          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer"><strong>LinkedIn <Arrow /></strong><span>linkedin.com/in/ben-huffman-b7b6a8102</span></a>
-          <a href="https://contra.com/ben" target="_blank" rel="noreferrer"><strong>Contra <Arrow /></strong><span>contra.com/ben</span></a>
+          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>X <Arrow /></strong><span>x.com/contraben</span></a>
+          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>LinkedIn <Arrow /></strong><span>linkedin.com/in/ben-huffman-b7b6a8102</span></a>
+          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>Contra <Arrow /></strong><span>contra.com/ben</span></a>
         </div>
       </section>
     </main>
