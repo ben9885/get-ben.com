@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere } from "./atmosphere";
 
-const sections = ["about", "contra", "research", "investments", "projects"];
+const sections = ["about", "contra", "research", "investments", "projects", "contact"];
 
 const projects = [
   { n: "01", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
@@ -109,6 +109,15 @@ export default function Home() {
         <div className="section-head"><p className="section-label mono">04 / Selected work</p><h2>Projects</h2></div>
         <div className="subhead"><h3>Contra Launch Video Music</h3><p>I composed and worked on the music for a series of Contra launch films.</p></div>
         <div className="project-list">{projects.map(p => <ProjectRow key={p.n} item={p} />)}</div>
+      </section>
+
+      <section id="contact" className="reveal contact">
+        <div className="section-head"><p className="section-label mono">05 / Get in touch</p><h2>Contact</h2></div>
+        <div className="socials">
+          <a href="https://x.com/contraben" target="_blank" rel="noreferrer"><strong>X <Arrow /></strong><span>x.com/contraben</span></a>
+          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer"><strong>LinkedIn <Arrow /></strong><span>linkedin.com/in/ben-huffman-b7b6a8102</span></a>
+          <a href="https://contra.com/ben" target="_blank" rel="noreferrer"><strong>Contra <Arrow /></strong><span>contra.com/ben</span></a>
+        </div>
       </section>
     </main>
     <footer><strong>Ben Huffman</strong><span className="mono">© 2026</span><a href="#about">Back to top ↑</a></footer>
