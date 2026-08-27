@@ -25,9 +25,11 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .city-switch button:active { transform:translateY(1px) scale(.98); }
 .city-switch button.selected { opacity:1; background:color-mix(in srgb,var(--ink) 11%,transparent); border-color:color-mix(in srgb,var(--ink) 20%,transparent); font-weight:650; }
 .city-glyph { position:relative; width:13px; height:13px; display:inline-block; flex:0 0 auto; opacity:.86; }
-.sf-glyph { border:1px solid currentColor; border-radius:50%; background:linear-gradient(currentColor,currentColor) center 4px/7px 1px no-repeat,linear-gradient(currentColor,currentColor) center 7px/9px 1px no-repeat; }
-.ny-glyph { background:linear-gradient(to top,currentColor 0 100%) 1px 5px/3px 8px no-repeat,linear-gradient(to top,currentColor 0 100%) 5px 2px/3px 11px no-repeat,linear-gradient(to top,currentColor 0 100%) 9px 6px/3px 7px no-repeat; }
-.ny-glyph::after { content:""; position:absolute; left:6px; top:0; width:1px; height:3px; background:currentColor; }
+.sf-glyph { background:linear-gradient(currentColor,currentColor) 0 10px/13px 1px no-repeat,linear-gradient(currentColor,currentColor) 3px 3px/1.5px 9px no-repeat,linear-gradient(currentColor,currentColor) 9px 3px/1.5px 9px no-repeat; }
+.sf-glyph::before { content:""; position:absolute; left:1px; top:1px; width:11px; height:7px; border-top:1px solid currentColor; border-radius:50% 50% 0 0; }
+.sf-glyph::after { content:""; position:absolute; left:4px; top:5px; width:5px; height:4px; border-top:1px solid currentColor; border-radius:50% 50% 0 0; }
+.ny-glyph { background:currentColor; clip-path:polygon(47% 0,53% 0,53% 14%,61% 14%,61% 27%,70% 27%,70% 42%,79% 42%,79% 58%,88% 58%,88% 100%,12% 100%,12% 58%,21% 58%,21% 42%,30% 42%,30% 27%,39% 27%,39% 14%,47% 14%); }
+.ny-glyph::after { content:none; }
 .weather-tip { position:absolute; right:0; top:calc(100% + 17px); min-width:168px; padding:12px 14px; display:flex; flex-direction:column; gap:3px; background:color-mix(in srgb,var(--nav-bg) 88%,var(--ink) 12%); border:1px solid var(--line); font-size:11px; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity .18s ease,transform .18s ease; }
 .environment:hover .weather-tip,.environment:focus-within .weather-tip { opacity:1; transform:none; }
 .weather-tip strong { font-size:12px; }
