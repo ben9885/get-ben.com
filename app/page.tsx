@@ -78,7 +78,7 @@ export default function Home() {
 
       <section id="contra" className="statement reveal">
         <p className="section-label mono">01 / Currently</p>
-        <p className="large-copy">I am building <a className="brand-inline" href="https://contra.com/" target="_blank" rel="noreferrer"><ContraLogo /><Arrow /></a> and <a className="brand-inline" href="https://contra.com/labs" target="_blank" rel="noreferrer"><ContraLogo labs /><Arrow /></a> to help creativity meet opportunity globally. Contra supports millions of users earning hundreds of millions of dollars annually in over 180 countries.</p>
+        <p className="large-copy">I am building <ExternalLink href="https://contra.com/">Contra</ExternalLink> and <ExternalLink href="https://contra.com/labs">Contra Labs</ExternalLink> to help creativity meet opportunity globally. Contra supports millions of users earning hundreds of millions of dollars annually in over 180 countries.</p>
         <div className="link-pair">
           <a href="https://contra.com/" target="_blank" rel="noreferrer"><strong><ContraLogo /><Arrow /></strong><span>Independent work infrastructure</span></a>
           <a href="https://contra.com/labs" target="_blank" rel="noreferrer"><strong><ContraLogo labs /><Arrow /></strong><span>Human data + RL infrastructure for creative AI</span></a>
