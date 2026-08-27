@@ -25,14 +25,17 @@ const investments = [
 ];
 
 const research = [
-  { n: "01", title: "TASTE: A Designer-Annotated Multi-Dimensional Preference Dataset for AI-Generated Graphic Design", meta: "2026 · Paper", href: "https://arxiv.org/abs/2605.20731" },
-  { n: "02", title: "The Human Creativity Benchmark", meta: "2026 · Paper", href: "https://arxiv.org/abs/2606.30561" },
-  { n: "03", title: "Contra Labs Research", meta: "Ongoing · Research", href: "https://contra.com/labs" },
-  { n: "04", title: "Human Creativity Benchmark", meta: "Dataset · Hugging Face", href: "https://huggingface.co/datasets/contra-labs/HumanCreativityBenchmark" },
-  { n: "05", title: "Video Detail Annotation", meta: "Dataset · Hugging Face", href: "https://huggingface.co/datasets/contra-labs/video-detail-annotation" },
-  { n: "06", title: "Creative Photoshop Design Trajectories", meta: "Dataset · Hugging Face", href: "https://huggingface.co/datasets/contra-labs/creative-photoshop-design-trajectories" },
-  { n: "07", title: "Firefly Creative Campaign Trajectories", meta: "Dataset · Hugging Face", href: "https://huggingface.co/datasets/contra-labs/firefly-creative-campaign-trajectories" },
-  { n: "08", title: "Gemini Creative Campaign Trajectories", meta: "Dataset · Hugging Face", href: "https://huggingface.co/datasets/contra-labs/gemini-creative-campaign-trajectories" },
+  { n: "01", title: "TASTE: A Designer-Annotated Multi-Dimensional Preference Dataset for AI-Generated Graphic Design", meta: "2026 · Paper", stats: "", href: "https://arxiv.org/abs/2605.20731" },
+  { n: "02", title: "The Human Creativity Benchmark", meta: "2026 · Paper", stats: "", href: "https://arxiv.org/abs/2606.30561" },
+  { n: "03", title: "Contra Labs Research", meta: "Ongoing · Research", stats: "", href: "https://contra.com/labs" },
+  { n: "04", title: "Ad Creative Design Dataset", meta: "Dataset · Hugging Face", stats: "85 downloads · 1 like", href: "https://huggingface.co/datasets/contralabs/creative-ad-design-dataset" },
+  { n: "05", title: "Descript Video-Editing Trajectories", meta: "Dataset · Hugging Face", stats: "286 downloads · 0 likes", href: "https://huggingface.co/datasets/contralabs/descript-video-editing-trajectories" },
+  { n: "06", title: "Premiere Video-Editing Trajectories", meta: "Dataset · Hugging Face", stats: "686 downloads · 12 likes", href: "https://huggingface.co/datasets/contralabs/premiere-video-editing-trajectories" },
+  { n: "07", title: "Video Detail Annotation", meta: "Dataset · Hugging Face", stats: "387 downloads · 3 likes", href: "https://huggingface.co/datasets/contralabs/video-detail-annotation" },
+  { n: "08", title: "Human Creativity Benchmark", meta: "Dataset · Hugging Face", stats: "265 downloads · 2 likes", href: "https://huggingface.co/datasets/contralabs/HumanCreativityBenchmark" },
+  { n: "09", title: "Photoshop Creative Design Trajectories", meta: "Dataset · Hugging Face", stats: "230 downloads · 3 likes", href: "https://huggingface.co/datasets/contralabs/photoshop-creative-design-trajectories" },
+  { n: "10", title: "Gemini Creative Campaign Trajectories", meta: "Dataset · Hugging Face", stats: "183 downloads · 1 like", href: "https://huggingface.co/datasets/contralabs/gemini-creative-campaign-trajectories" },
+  { n: "11", title: "Firefly Creative Campaign Trajectories", meta: "Dataset · Hugging Face", stats: "125 downloads · 1 like", href: "https://huggingface.co/datasets/contralabs/firefly-creative-campaign-trajectories" },
 ];
 
 function Arrow() { return <span className="arrow" aria-hidden>↗</span>; }
@@ -92,7 +95,7 @@ export default function Home() {
 
       <section id="research" className="reveal">
         <div className="section-head"><p className="section-label mono">02 / Research + data</p><h2>Research</h2></div>
-        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono">{r.meta} <Arrow /></span></a>)}</div>
+        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono"><span>{r.meta} <Arrow /></span>{r.stats && <span className="research-stats">{r.stats}</span>}</span></a>)}</div>
       </section>
 
       <section id="investments" className="reveal">

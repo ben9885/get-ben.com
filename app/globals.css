@@ -89,10 +89,11 @@ a:hover .arrow { transform:translate(3px,-3px); }
 .index-row > span:first-child { font-size:clamp(18px,2.2vw,27px); letter-spacing:-.03em; transition:padding .18s ease; }
 .index-row:hover > span:first-child { padding-left:8px; }
 .research-list { border-top:1px solid var(--ink); }
-.research-row { display:grid; grid-template-columns:65px 1fr 155px; gap:20px; align-items:center; min-height:67px; border-bottom:1px solid var(--line); }
+.research-row { display:grid; grid-template-columns:65px 1fr 190px; gap:20px; align-items:center; min-height:67px; border-bottom:1px solid var(--line); }
 .research-row strong { font-size:clamp(18px,2.2vw,27px); line-height:1.15; letter-spacing:-.03em; max-width:780px; font-weight:400; transition:padding .18s ease; }
 .research-row:hover strong { padding-left:8px; }
-.research-meta { text-align:right; }
+.research-meta { display:flex; flex-direction:column; align-items:flex-end; gap:5px; text-align:right; }
+.research-stats { font-size:10px; opacity:.55; letter-spacing:.02em; }
 .contact { padding-bottom:clamp(120px,16vw,210px); }
 .socials { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--line); }
 .socials a { min-height:145px; padding:25px 20px 25px 0; display:flex; flex-direction:column; justify-content:space-between; border-right:1px solid var(--line); transition:padding-left .18s ease; }
@@ -129,7 +130,7 @@ footer a { font-size:12px; }
   .index-head,.index-row { grid-template-columns:1fr 82px 48px; gap:10px; }
   .index-row { font-size:14px; }
   .research-row { grid-template-columns:38px 1fr; gap:10px; padding:14px 0; }
-  .research-meta { grid-column:2; text-align:left; padding-top:0; }
+  .research-meta { grid-column:2; align-items:flex-start; text-align:left; padding-top:0; }
   .socials { grid-template-columns:1fr; }
   .socials a,.socials a:nth-child(2),.socials a:last-child { min-height:105px; border-right:0; border-bottom:1px solid var(--line); padding-left:0; }
   .socials a:hover,.socials a:nth-child(2):hover,.socials a:last-child:hover { padding-left:8px; }
