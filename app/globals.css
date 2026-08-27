@@ -52,7 +52,7 @@ h1 { max-width:1000px; margin:0; font-size:clamp(64px,12vw,164px); line-height:.
 .brand-inline { display:inline-flex; align-items:baseline; gap:.08em; white-space:nowrap; vertical-align:.04em; }
 .brand-logo { display:inline-block; width:auto; color:currentColor; overflow:visible; }
 .brand-inline .contra-logo { height:.56em; }
-.brand-inline .labs-logo { height:.55em; }
+.brand-inline .labs-logo { height:.8em; }
 .brand-inline .arrow { margin-left:.02em; }
 .external { display:inline; background-image:linear-gradient(var(--ink),var(--ink)); background-size:0 1px; background-repeat:no-repeat; background-position:0 100%; transition:background-size .2s ease,opacity .2s ease; }
 .external:hover { background-size:100% 1px; opacity:.72; }
@@ -62,7 +62,7 @@ a:hover .arrow { transform:translate(3px,-3px); }
 .link-pair a { padding:19px 0; display:flex; flex-direction:column; gap:7px; border-bottom:1px solid var(--line); transition:padding-left .18s ease; }
 .link-pair strong { min-height:27px; display:flex; align-items:center; gap:8px; }
 .link-pair .contra-logo { height:24px; }
-.link-pair .labs-logo { height:22px; }
+.link-pair .labs-logo { height:42px; }
 .link-pair a:first-child { border-right:1px solid var(--line); }
 .link-pair a:last-child { padding-left:24px; }
 .link-pair a:hover { padding-left:8px; }
