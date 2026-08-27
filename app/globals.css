@@ -17,16 +17,11 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .nav-links a::after { content:""; position:absolute; left:0; right:100%; bottom:-5px; height:1px; background:var(--ink); transition:right .2s ease; }
 .nav-links a:hover,.nav-links a.active { opacity:1; }
 .nav-links a.active::after { right:0; }
-.environment { position:relative; font-size:13px; display:flex; align-items:center; gap:14px; white-space:nowrap; }
+.environment { position:relative; font-size:13px; display:flex; align-items:center; white-space:nowrap; }
 .city-switch { display:flex; align-items:center; gap:5px; }
 .city-switch button { appearance:none; border:0; padding:0; background:none; cursor:pointer; opacity:.48; font-weight:450; transition:opacity .18s ease; }
 .city-switch button:hover,.city-switch button:focus-visible,.city-switch button.selected { opacity:1; }
 .city-switch button.selected { font-weight:620; }
-.earth-toggle { appearance:none; width:16px; height:16px; padding:0; border:0; background:none; display:grid; place-items:center; color:inherit; opacity:.72; cursor:pointer; transition:opacity .18s ease,transform .35s ease; }
-.earth-toggle:hover,.earth-toggle:focus-visible,.earth-toggle[aria-pressed="true"] { opacity:1; }
-.earth-toggle:focus-visible { outline:1px solid currentColor; outline-offset:4px; border-radius:50%; }
-.earth-toggle[aria-pressed="true"] { transform:rotate(12deg); }
-.earth-toggle svg { width:16px; height:16px; display:block; fill:none; stroke:currentColor; stroke-width:1.45; stroke-linecap:round; stroke-linejoin:round; }
 .weather-tip { position:absolute; right:0; top:calc(100% + 17px); min-width:168px; padding:12px 14px; display:flex; flex-direction:column; gap:3px; background:color-mix(in srgb,var(--nav-bg) 88%,var(--ink) 12%); border:1px solid var(--line); font-size:11px; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity .18s ease,transform .18s ease; }
 .environment:hover .weather-tip,.environment:focus-within .weather-tip { opacity:1; transform:none; }
 .weather-tip strong { font-size:12px; }
@@ -42,21 +37,7 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .atmosphere-layer.is-current { animation:atmosphere-in 1.35s cubic-bezier(.22,1,.36,1) both; }
 .atmosphere-layer.is-outgoing { animation:atmosphere-out 1.35s cubic-bezier(.22,1,.36,1) both; }
 .grain { position:absolute; inset:0; opacity:.016; mix-blend-mode:overlay; pointer-events:none; background-image:radial-gradient(circle at 30% 20%,#fff 0 .4px,transparent .6px),radial-gradient(circle at 72% 64%,#000 0 .45px,transparent .7px); background-size:3px 4px,5px 3px; }
-.earth-view { position:fixed; inset:0; z-index:15; background:#000207; opacity:0; touch-action:none; cursor:grab; }
-.earth-view.is-open { animation:earth-enter 1.4s cubic-bezier(.22,1,.36,1) forwards; }
-.earth-view.is-closing { animation:earth-exit 1.2s cubic-bezier(.22,1,.36,1) forwards; pointer-events:none; }
-.earth-view:active { cursor:grabbing; }
-.earth-view canvas { width:100%; height:100%; display:block; }
-.earth-static::before { content:""; position:absolute; width:min(58vh,68vw); aspect-ratio:1; left:50%; top:52%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle at 34% 30%,#6c9dc1 0 8%,#204966 32%,#07131e 72%,#000 100%); box-shadow:0 0 32px rgba(100,176,255,.24); }
-.earth-loading { z-index:14; }
-.earth-view-active { overflow:hidden; }
-.earth-view-active main,.earth-view-active footer { opacity:0; pointer-events:none; }
-.earth-view-active .atmosphere-background { filter:saturate(.45) brightness(.2); transition:filter 1.15s cubic-bezier(.22,1,.36,1); }
-.earth-view-active .nav-wrap { color:#f2f3ef; --ink:#f2f3ef; --line:rgba(242,243,239,.25); --nav-bg:rgba(0,2,7,.72); }
-.earth-view-active .nav-links,.earth-view-active .monogram { opacity:0; pointer-events:none; transition:opacity .25s ease; }
-@keyframes earth-enter { 0%{opacity:0} 18%{opacity:.08} 100%{opacity:1} }
-@keyframes earth-exit { from{opacity:1;transform:scale(1)} to{opacity:0;transform:scale(1.08)} }
-main,footer { position:relative; z-index:1; transition:opacity .3s ease; }
+main,footer { position:relative; z-index:1; }
 @keyframes atmosphere-in { from{opacity:0} to{opacity:1} }
 @keyframes atmosphere-out { from{opacity:1} to{opacity:0} }
 main,footer { max-width:1120px; margin:auto; padding-left:var(--gutter); padding-right:var(--gutter); }

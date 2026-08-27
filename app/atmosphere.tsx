@@ -100,11 +100,7 @@ export function AtmosphereBackground({atmosphere}:{atmosphere:Atmosphere}) {
   return <div className="atmosphere-background" aria-hidden>{outgoing&&<Layer a={outgoing} className="is-outgoing"/>}<Layer a={current} className="is-current"/><div className="grain"/></div>;
 }
 
-function GlobeIcon() {
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3c2.4 2.5 3.6 5.5 3.6 9S14.4 18.5 12 21M12 3C9.6 5.5 8.4 8.5 8.4 12s1.2 6.5 3.6 9"/></svg>;
-}
-
-export function CitySwitcher({city,setCity,weather,earthOpen=false,onToggleEarth,onPreloadEarth}:{city:City;setCity:(c:City)=>void;weather:WeatherState;earthOpen?:boolean;onToggleEarth?:()=>void;onPreloadEarth?:()=>void}) {
+export function CitySwitcher({city,setCity,weather}:{city:City;setCity:(c:City)=>void;weather:WeatherState}) {
   const c=CITIES[city],time=new Intl.DateTimeFormat("en-US",{timeZone:c.zone,hour:"numeric",minute:"2-digit"}).format(new Date());
-  return <div className="environment"><div className="city-switch" aria-label="Site atmosphere location"><button onClick={()=>setCity("SF")} className={city==="SF"?"selected":""} aria-pressed={city==="SF"}>SF</button><span>/</span><button onClick={()=>setCity("NY")} className={city==="NY"?"selected":""} aria-pressed={city==="NY"}>NY</button></div>{onToggleEarth&&<button className="earth-toggle" onClick={onToggleEarth} onPointerEnter={onPreloadEarth} onFocus={onPreloadEarth} aria-label={earthOpen?"Close Earth view":"Open Earth view"} aria-pressed={earthOpen}><GlobeIcon /></button>}<div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
+  return <div className="environment"><div className="city-switch" aria-label="Site atmosphere location"><button onClick={()=>setCity("SF")} className={city==="SF"?"selected":""} aria-pressed={city==="SF"}>SF</button><span>/</span><button onClick={()=>setCity("NY")} className={city==="NY"?"selected":""} aria-pressed={city==="NY"}>NY</button></div><div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
 }
