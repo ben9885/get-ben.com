@@ -84,11 +84,6 @@ export default function Home() {
         <div className="section-head"><p className="section-label mono">02 / Selected work</p><h2>Projects</h2></div>
         <div className="subhead"><h3>Contra Launch Video Music</h3><p>I composed and worked on the music for a series of Contra launch films.</p></div>
         <div className="project-list">{projects.map(p => <ProjectRow key={p.n} item={p} />)}</div>
-        <div className="music-block">
-          <p className="section-label mono">Music / Archive</p>
-          <div className="music-copy"><div><h3>Music</h3><p>Benjamin Carlisle</p></div><p className="track">BBC Radio 1 – Pete Tong – Benjamin Carlisle – One <span className="serif">(Icarus Mix)</span></p></div>
-          <iframe className="soundcloud" title="Benjamin Carlisle – One (Icarus Mix)" scrolling="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/234001774&color=%2334384c&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&visual=false" />
-        </div>
       </section>
 
       <section id="investments" className="reveal">
