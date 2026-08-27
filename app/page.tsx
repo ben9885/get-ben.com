@@ -81,7 +81,12 @@ export default function Home() {
         <p className="eyebrow mono">Ben Huffman · Internet homepage</p>
         <h1>Hey, I’m Ben<span className="serif">.</span></h1>
         <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
-        <div className="hero-notes mono"><span>Founder × creative director</span><span>Researcher × musician</span></div>
+        <div className="hero-socials" aria-label="Social links">
+          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" aria-label="Ben Huffman on X"><span aria-hidden>X</span></a>
+          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" aria-label="Ben Huffman on LinkedIn"><span className="linkedin-icon" aria-hidden>in</span></a>
+          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" aria-label="Ben Huffman on Contra"><span className="contra-icon" aria-hidden>✦</span></a>
+        </div>
+        <div className="hero-notes mono"><span>Founder × Creative × Researcher × Investor</span></div>
       </section>
 
       <section id="contra" className="statement reveal">

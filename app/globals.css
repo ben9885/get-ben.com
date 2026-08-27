@@ -46,7 +46,12 @@ section { scroll-margin-top:70px; padding:clamp(100px,14vw,190px) 0 0; }
 .eyebrow,.section-label { margin:0 0 25px; }
 h1 { max-width:1000px; margin:0; font-size:clamp(64px,12vw,164px); line-height:.82; letter-spacing:-.085em; font-weight:690; }
 .dek { max-width:650px; margin:36px 0 0; font-size:clamp(23px,3.2vw,42px); line-height:1.08; letter-spacing:-.045em; }
-.hero-notes { margin-top:auto; padding:40px 0 24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; }
+.hero-socials { display:flex; align-items:center; gap:9px; margin-top:22px; }
+.hero-socials a { width:28px; height:28px; display:grid; place-items:center; border:1px solid var(--line); border-radius:50%; font-size:11px; font-weight:650; transition:background .18s ease,color .18s ease,transform .18s ease; }
+.hero-socials a:hover { background:var(--ink); color:#fff; transform:translateY(-2px); }
+.hero-socials .linkedin-icon { font-size:12px; letter-spacing:-.06em; }
+.hero-socials .contra-icon { font-size:14px; line-height:1; }
+.hero-notes { margin-top:auto; padding:40px 0 24px; border-bottom:1px solid var(--line); }
 .statement { padding-top:clamp(110px,16vw,210px); }
 .large-copy { font-size:clamp(36px,5.5vw,75px); line-height:.99; letter-spacing:-.057em; margin:0; max-width:1080px; }
 .brand-inline { display:inline-flex; align-items:baseline; gap:.08em; white-space:nowrap; vertical-align:.04em; }
@@ -116,8 +121,6 @@ footer a { font-size:12px; }
   .hero { min-height:68vh; }
   h1 { font-size:clamp(66px,24vw,100px); max-width:95%; }
   .dek { font-size:28px; }
-  .hero-notes { align-items:flex-end; gap:20px; }
-  .hero-notes span:last-child { text-align:right; }
   .link-pair { grid-template-columns:1fr; }
   .link-pair a:first-child { border-right:0; }
   .link-pair a:last-child { padding-left:0; }
