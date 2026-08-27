@@ -80,7 +80,7 @@ export default function Home() {
       <section id="about" className="hero reveal">
         <p className="eyebrow mono">Ben Huffman · Internet homepage</p>
         <h1>Hey, I’m Ben<span className="serif">.</span></h1>
-        <p className="dek">I’m a creative generalist, builder, entrepreneur, and angel investor.</p>
+        <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
         <div className="hero-notes mono"><span>Founder × creative director</span><span>Researcher × musician</span></div>
       </section>
 
