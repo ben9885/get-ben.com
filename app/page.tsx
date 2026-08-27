@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere } from "./atmosphere";
 
-const sections = ["about", "contra", "projects", "investments", "research", "opinions"];
+const sections = ["about", "contra", "research", "investments", "projects"];
 
 const projects = [
   { n: "01", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
@@ -85,10 +85,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="projects" className="reveal">
-        <div className="section-head"><p className="section-label mono">02 / Selected work</p><h2>Projects</h2></div>
-        <div className="subhead"><h3>Contra Launch Video Music</h3><p>I composed and worked on the music for a series of Contra launch films.</p></div>
-        <div className="project-list">{projects.map(p => <ProjectRow key={p.n} item={p} />)}</div>
+      <section id="research" className="reveal">
+        <div className="section-head"><p className="section-label mono">02 / Publications</p><h2>Research</h2></div>
+        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono">{r.meta} <Arrow /></span></a>)}</div>
       </section>
 
       <section id="investments" className="reveal">
@@ -96,14 +95,10 @@ export default function Home() {
         <div className="index investments"><div className="index-head mono"><span>Company</span><span>Stage</span><span>Year</span></div>{investments.map(([name, href, stage, year]) => <div className="index-row" key={name}><span>{href ? <ExternalLink href={href}>{name}</ExternalLink> : name}</span><span>{stage}</span><span className="mono">{year}</span></div>)}</div>
       </section>
 
-      <section id="research" className="reveal">
-        <div className="section-head"><p className="section-label mono">04 / Publications</p><h2>Research</h2></div>
-        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono">{r.meta} <Arrow /></span></a>)}</div>
-      </section>
-
-      <section id="opinions" className="reveal opinions">
-        <div className="section-head"><p className="section-label mono">05 / Elsewhere</p><h2>Opinions</h2></div>
-        <div className="socials"><a href="https://x.com/contraben" target="_blank" rel="noreferrer"><strong>X <Arrow /></strong><span>@contraben</span></a><a href="https://www.linkedin.com/in/benhuffman" target="_blank" rel="noreferrer"><strong>LinkedIn <Arrow /></strong><span>Ben Huffman</span></a><a href="https://contra.com/ben" target="_blank" rel="noreferrer"><strong>Contra <Arrow /></strong><span>contra.com/ben</span></a></div>
+      <section id="projects" className="reveal">
+        <div className="section-head"><p className="section-label mono">04 / Selected work</p><h2>Projects</h2></div>
+        <div className="subhead"><h3>Contra Launch Video Music</h3><p>I composed and worked on the music for a series of Contra launch films.</p></div>
+        <div className="project-list">{projects.map(p => <ProjectRow key={p.n} item={p} />)}</div>
       </section>
     </main>
     <footer><strong>Ben Huffman</strong><span className="mono">© 2026</span><a href="#about">Back to top ↑</a></footer>
