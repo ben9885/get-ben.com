@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AtmosphereBackground, CitySwitcher, useCityAtmosphere } from "./atmosphere";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
+const SpaceView = lazy(() => import("./space-view"));
 
 const projects = [
   { n: "01", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
@@ -70,16 +71,22 @@ function ProjectRow({ item }: { item: typeof projects[number] }) {
 
 export default function Home() {
   const [active, setActive] = useState("about");
+  const [mode, setModeState] = useState<EnvironmentMode>("ny");
+  const [spaceLoaded, setSpaceLoaded] = useState(false);
   const { city, setCity, weather, atmosphere } = useCityAtmosphere();
   useEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { rootMargin: "-20% 0px -65%" });
     sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
     return () => observer.disconnect();
   }, []);
+  useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
+  const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
+  useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
 
   return <>
     <AtmosphereBackground atmosphere={atmosphere} />
-    <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} />} />
+    {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
+    <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
         <p className="eyebrow mono">Ben Huffman · Internet homepage</p>

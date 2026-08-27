@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 export type City = "SF" | "NY";
+export type EnvironmentMode = "sf" | "ny" | "space";
 export type WeatherState = { weatherCode: number; temperature: number; cloudCover: number; humidity: number; precipitation: number; visibility: number } | null;
 type Oklch = [number, number, number];
 export type Atmosphere = { id: string; style: CSSProperties; foreground: string; line: string; nav: string };
@@ -100,7 +101,12 @@ export function AtmosphereBackground({atmosphere}:{atmosphere:Atmosphere}) {
   return <div className="atmosphere-background" aria-hidden>{outgoing&&<Layer a={outgoing} className="is-outgoing"/>}<Layer a={current} className="is-current"/><div className="grain"/></div>;
 }
 
-export function CitySwitcher({city,setCity,weather}:{city:City;setCity:(c:City)=>void;weather:WeatherState}) {
+function TelescopeIcon() {
+  return <svg className="telescope-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 10.5 5-7 3 2-5 7M7.8 9.2l5.9 4.2M5 12.5l7.5 5.2M10.8 16.5 8 21M12 17l3.5 4M4 21h14M4.4 10.8l2.8-4 3 2.1-2.8 4z"/></svg>;
+}
+
+export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
   const c=CITIES[city],time=new Intl.DateTimeFormat("en-US",{timeZone:c.zone,hour:"numeric",minute:"2-digit"}).format(new Date());
-  return <div className="environment"><div className="city-switch" aria-label="Site atmosphere location"><button onClick={()=>setCity("SF")} className={city==="SF"?"selected":""} aria-pressed={city==="SF"}><img className="city-glyph" src="/city-icons/sf.png" alt="" />SF</button><button onClick={()=>setCity("NY")} className={city==="NY"?"selected":""} aria-pressed={city==="NY"}><img className="city-glyph" src="/city-icons/ny.png" alt="" />NY</button></div><div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
+  const chooseCity=(next:City)=>{setCity(next);onMode(next.toLowerCase() as EnvironmentMode)};
+  return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><img className="city-glyph" src="/city-icons/sf.png" alt="" />SF</button><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><img className="city-glyph" src="/city-icons/ny.png" alt="" />NY</button><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon /></button></div><div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
 }
