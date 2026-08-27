@@ -101,12 +101,12 @@ export function AtmosphereBackground({atmosphere}:{atmosphere:Atmosphere}) {
   return <div className="atmosphere-background" aria-hidden>{outgoing&&<Layer a={outgoing} className="is-outgoing"/>}<Layer a={current} className="is-current"/><div className="grain"/></div>;
 }
 
-function TelescopeIcon() {
-  return <svg className="telescope-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 10.5 5-7 3 2-5 7M7.8 9.2l5.9 4.2M5 12.5l7.5 5.2M10.8 16.5 8 21M12 17l3.5 4M4 21h14M4.4 10.8l2.8-4 3 2.1-2.8 4z"/></svg>;
+function CloudIcon() {
+  return <svg className="cloud-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H7a5 5 0 0 1-.55-9.97A6.5 6.5 0 0 1 18.7 8.1 4.5 4.5 0 0 1 17.5 19Z"/></svg>;
 }
 
 export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
   const c=CITIES[city],time=new Intl.DateTimeFormat("en-US",{timeZone:c.zone,hour:"numeric",minute:"2-digit"}).format(new Date());
   const chooseCity=(next:City)=>{setCity(next);onMode(next.toLowerCase() as EnvironmentMode)};
-  return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><img className="city-glyph" src="/city-icons/sf.png" alt="" />SF</button><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><img className="city-glyph" src="/city-icons/ny.png" alt="" />NY</button><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon /></button></div><div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
+  return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><img className="city-glyph" src="/city-icons/sf.png" alt="" />SF</button><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><img className="city-glyph" src="/city-icons/ny.png" alt="" />NY</button><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Cloud view" aria-pressed={mode==="space"}><CloudIcon /></button></div><div className="weather-tip" role="status"><strong>{c.name}</strong><span>{weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}</span></div></div>;
 }

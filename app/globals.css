@@ -25,7 +25,7 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .city-switch button:active { transform:translateY(1px) scale(.98); }
 .city-switch button.selected { opacity:1; border-color:color-mix(in srgb,var(--ink) 26%,transparent); font-weight:650; }
 .city-switch .space-option { width:44px; min-width:44px; min-height:44px; padding:8px 9px; justify-content:center; }
-.telescope-icon { width:22px; height:22px; display:block; fill:none; stroke:currentColor; stroke-width:1.55; stroke-linecap:round; stroke-linejoin:round; }
+.cloud-icon { width:22px; height:22px; display:block; fill:none; stroke:currentColor; stroke-width:1.55; stroke-linecap:round; stroke-linejoin:round; }
 .city-glyph { width:18px; height:18px; display:block; flex:0 0 auto; border-radius:50%; object-fit:cover; }
 .weather-tip { position:absolute; right:0; top:calc(100% + 17px); min-width:168px; padding:12px 14px; display:flex; flex-direction:column; gap:3px; background:color-mix(in srgb,var(--nav-bg) 88%,var(--ink) 12%); border:1px solid var(--line); font-size:11px; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity .18s ease,transform .18s ease; }
 .environment:hover .weather-tip,.environment:focus-within .weather-tip { opacity:1; transform:none; }
@@ -36,7 +36,7 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .space-view { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; opacity:0; background:radial-gradient(circle at 72% 18%,#081226 0,transparent 38%),linear-gradient(155deg,#02050d,#000207 62%,#050817); transition:opacity 1.35s cubic-bezier(.22,1,.36,1); }
 .space-view.is-active { opacity:1; }
 .space-view canvas { width:100%; height:100%; display:block; }
-.space-static { background-color:#01040b; background-image:radial-gradient(circle at 12% 20%,rgba(220,235,255,.7) 0 1px,transparent 1.5px),radial-gradient(circle at 82% 35%,rgba(190,211,255,.45) 0 1px,transparent 1.4px),radial-gradient(circle at 62% 78%,rgba(230,226,255,.38) 0 1px,transparent 1.5px); background-size:190px 170px,260px 230px,330px 280px; }
+.space-static { background-color:#000; background-image:radial-gradient(ellipse 75% 45% at 28% 72%,rgba(51,77,128,.9),transparent 70%),radial-gradient(ellipse 64% 38% at 76% 34%,rgba(92,166,202,.78),transparent 72%),radial-gradient(ellipse 38% 24% at 52% 58%,rgba(255,255,255,.24),transparent 75%); }
 .space-mode body { background:#01040b; }
 .space-mode .weather-tip { display:none; }
 .atmosphere-layer { position:absolute; inset:-8vmax; will-change:opacity; background:
