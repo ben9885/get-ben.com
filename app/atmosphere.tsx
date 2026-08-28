@@ -102,7 +102,15 @@ export function AtmosphereBackground({atmosphere}:{atmosphere:Atmosphere}) {
 }
 
 function TelescopeIcon() {
-  return <svg className="telescope-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 10.5 5-7 3 2-5 7M7.8 9.2l5.9 4.2M5 12.5l7.5 5.2M10.8 16.5 8 21M12 17l3.5 4M4 21h14M4.4 10.8l2.8-4 3 2.1-2.8 4z"/></svg>;
+  return <svg className="telescope-icon" viewBox="0 0 100 99" aria-hidden="true">
+    <path d="m75.1 9.5-2.6 1.5-0.4-0.8-11.5 5.9c-1.2 0.7-1.8 1.9-1 3.3l8.7 14.6c0.8 1.4 2.5 2.1 4.1 1.5l14.3-7.6" />
+    <path d="m82.9 4c-2.3-1-3.9-0.6-4.8-0.1-1.5 0.9-2.8 2.8-2.9 5.5" />
+    <path d="m86.8 27.8h-0.1c4.2 0.1 7.1-2.3 7.2-6.9 0.2-4.6-3.5-11.9-8.2-15.1-1-0.7-1.9-1.3-2.8-1.7" />
+    <path d="m88 18.8c1.3 3.5 1.5 7.2-0.5 7.9-2 0.8-4.9-1.8-6.7-5.4s-2.8-7.7-0.9-9.3c2.1-1.5 5.7 0.7 8.1 6.8z" />
+    <path d="m59.8 19.8-37.3 20.6c-1.2 0.7-1.6 2.1-0.8 3.4l5.8 9.8c0.7 1.3 2.3 1.4 3.2 0.9 2.9-1.3 8.6-4.3 11.5-5.8v3.1h2.5l-18 42.7h5.6l14.5-34.4c0.1-0.3 0.7-0.3 0.7 0v34.4h4.8v-34.4c0-0.5 0.5-0.3 0.6 0l14.6 34.4h5.5l-18.2-42.6h3.1v-4.7h-11.5l-5.8-11.1 19.3-16.3" />
+    <polyline points="22.9 45.7 13.1 50.7 10.6 47.2 6 49.6 13.3 61.9 17.8 59.6 16.1 56.4 24.9 49.2" />
+    <polyline points="46.4 46.9 69 35.4" />
+  </svg>;
 }
 
 export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
