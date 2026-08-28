@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
@@ -104,6 +104,112 @@ function ProjectRow({ item }: { item: Project }) {
   </div>;
 }
 
+const loaderSegments = Array.from({ length: 48 }, (_, index) => index);
+
+function SiteLoader({ mode }: { mode: EnvironmentMode }) {
+  const [visible, setVisible] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [exiting, setExiting] = useState(false);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const modeDetails = mode === "sf"
+    ? { name: "San Francisco", coordinates: "37.7749° N · 122.4194° W" }
+    : mode === "space"
+      ? { name: "Space", coordinates: "Low Earth Orbit · 408 km" }
+      : { name: "New York", coordinates: "40.7128° N · 74.0060° W" };
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion || sessionStorage.getItem("ben-loader-seen") === "1") {
+      setVisible(false);
+      return;
+    }
+
+    root.classList.add("loader-active");
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    let frame = 0;
+    let cancelled = false;
+    const started = performance.now();
+    const minimumDuration = 900;
+
+    const readiness = Promise.race([
+      Promise.all([
+        document.fonts?.ready ?? Promise.resolve(),
+        new Promise<void>(resolve => window.setTimeout(resolve, 620)),
+      ]),
+      new Promise<void>(resolve => window.setTimeout(resolve, 1400)),
+    ]);
+
+    const animateProgress = (now: number) => {
+      const elapsed = now - started;
+      const eased = 1 - Math.pow(1 - Math.min(elapsed / 1050, 1), 3);
+      setProgress(Math.min(94, Math.round(eased * 94)));
+      if (!cancelled && elapsed < minimumDuration) frame = requestAnimationFrame(animateProgress);
+    };
+    frame = requestAnimationFrame(animateProgress);
+
+    Promise.all([
+      readiness,
+      new Promise<void>(resolve => window.setTimeout(resolve, minimumDuration)),
+    ]).then(() => {
+      if (cancelled) return;
+      cancelAnimationFrame(frame);
+      setProgress(100);
+      window.setTimeout(() => {
+        if (cancelled) return;
+        const loaderTitle = titleRef.current;
+        const heroTitle = document.querySelector<HTMLElement>("#about h1");
+        setExiting(true);
+        root.classList.add("loader-revealing");
+        if (loaderTitle && heroTitle) {
+          const from = loaderTitle.getBoundingClientRect();
+          const to = heroTitle.getBoundingClientRect();
+          loaderTitle.animate([
+            { transform: "translate3d(0,0,0) scale(1)", opacity: 1 },
+            { transform: `translate3d(${to.left - from.left}px,${to.top - from.top}px,0) scale(${to.width / Math.max(from.width, 1)})`, opacity: 1, offset: .76 },
+            { transform: `translate3d(${to.left - from.left}px,${to.top - from.top}px,0) scale(${to.width / Math.max(from.width, 1)})`, opacity: 0 },
+          ], { duration: 720, easing: "cubic-bezier(.16,1,.3,1)", fill: "forwards" });
+        }
+        window.setTimeout(() => {
+          sessionStorage.setItem("ben-loader-seen", "1");
+          root.classList.remove("loader-active", "loader-revealing");
+          document.body.style.overflow = previousOverflow;
+          setVisible(false);
+        }, 760);
+      }, 180);
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      root.classList.remove("loader-active", "loader-revealing");
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  if (!visible) return null;
+  const illuminated = Math.ceil((progress / 100) * loaderSegments.length);
+  return <div className={`site-loader mode-${mode}${exiting ? " is-exiting" : ""}`} role="status" aria-live="polite" aria-label={`Loading Ben Huffman's site, ${progress}%`}>
+    <div className="site-loader-surface" />
+    <div className="site-loader-grid">
+      <div className="site-loader-top mono">
+        <span>Ben Huffman</span>
+        <div className="site-loader-rail" aria-hidden="true">
+          {loaderSegments.map(index => <i key={index} className={index < illuminated ? "is-lit" : ""} />)}
+        </div>
+        <span className="site-loader-count">{progress}%</span>
+      </div>
+      <div className="site-loader-calibration mono">
+        <span>Calibrating {modeDetails.name}</span>
+        <span>{modeDetails.coordinates}</span>
+      </div>
+      <div className="site-loader-pulses" aria-hidden="true"><i /><i /><i /></div>
+      <div ref={titleRef} className="site-loader-title" aria-hidden="true">Hey, I’m Ben<span className="serif">.</span></div>
+    </div>
+  </div>;
+}
+
 export default function Home() {
   const [active, setActive] = useState("about");
   const [mode, setModeState] = useState<EnvironmentMode>("ny");
@@ -136,6 +242,7 @@ export default function Home() {
   return <>
     <AtmosphereBackground atmosphere={atmosphere} />
     {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
+    <SiteLoader mode={mode} />
     <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
