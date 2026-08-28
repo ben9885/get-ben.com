@@ -16,7 +16,6 @@ export const CITIES = {
 
 type DailyFact = { year: number; text: string; href: string };
 const DAILY_FACTS = dailyFactsData as Record<City | "SPACE", Record<string, DailyFact>>;
-const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const palettes: Record<string, Oklch[]> = {
   night: [[17,.055,258],[25,.09,260],[31,.09,278],[80,.04,250],[41,.12,270],[35,.11,292],[39,.05,255]],
@@ -65,7 +64,7 @@ function orbitTemperature(date:Date,city:City,altitudeKm=400) {
 function dailyCardFact(context:City|"SPACE",date:Date) {
   const zone=context==="SPACE"?"UTC":CITIES[context].zone,p=zonedParts(date,zone),key=`${String(p.month).padStart(2,"0")}-${String(p.day).padStart(2,"0")}`;
   const historical=DAILY_FACTS[context][key];
-  if(historical)return {label:`On ${p.day} ${MONTH_NAMES[p.month-1]} ${historical.year}`,text:historical.text,href:historical.href};
+  if(historical)return {label:`On this day · ${historical.year}`,text:historical.text,href:historical.href};
   if(context!=="SPACE"){
     const solar=solarState(date,context),minutes=Math.round((solar.sunset-solar.sunrise)*60),hours=Math.floor(minutes/60);
     return {label:"Today",text:`${hours}h ${String(minutes%60).padStart(2,"0")}m of daylight`,href:""};
@@ -142,10 +141,20 @@ function TelescopeIcon() {
 export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
   const now=new Date(),c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(now),orbit=orbitTemperature(now,city);
   const chooseCity=(next:City)=>{setCity(next);onMode(next.toLowerCase() as EnvironmentMode)};
-  const details=(space=false)=>{const fact=dailyCardFact(space?"SPACE":city,now);return <div className="weather-tip" role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:undefined}><strong>{space?"Space":c.name}</strong><span>{space?`≈${orbit.temperature}°F · ${orbit.state}`:weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}{space?" UTC":""}</span><div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div></div>};
+  const details=(space=false)=>{
+    const fact=dailyCardFact(space?"SPACE":city,now);
+    const metric=space?`≈${orbit.temperature}°F`:weather?`${Math.round(weather.temperature)}°`:"—°";
+    const condition=space?orbit.state:weather?weatherLabel(weather.weatherCode):"Atmosphere syncing";
+    const location=space?"Near-earth orbit":c.name;
+    return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
+      <span className="weather-live mono">Live · {location}</span>
+      <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
+      <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
+    </div>;
+  };
   return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view">
-    <div className="city-option"><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><span className="city-glyph city-glyph-ny" aria-hidden />NY</button>{mode==="ny"&&details()}</div>
-    <div className="city-option"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><span className="city-glyph city-glyph-sf" aria-hidden />SF</button>{mode==="sf"&&details()}</div>
-    <div className="city-option"><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon />Space</button>{mode==="space"&&details(true)}</div>
+    <div className={`city-option${mode==="ny"?" has-card":""}`}><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><span className="city-glyph city-glyph-ny" aria-hidden />NY</button>{mode==="ny"&&details()}</div>
+    <div className={`city-option${mode==="sf"?" has-card":""}`}><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><span className="city-glyph city-glyph-sf" aria-hidden />SF</button>{mode==="sf"&&details()}</div>
+    <div className={`city-option${mode==="space"?" has-card":""}`}><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon />Space</button>{mode==="space"&&details(true)}</div>
   </div></div>;
 }
