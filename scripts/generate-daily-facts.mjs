@@ -57,6 +57,7 @@ const OVERRIDES = {
     "07-26": { year: 1776, text: "Moraga moved his camp north and began building the early Presidio.", href: "https://www.sfmuseum.org/hist6/founding.html" },
     "08-02": { year: 1873, text: "San Francisco’s first cable car began service.", href: "https://www.sfmta.com/getting-around/muni/cable-cars" },
     "08-27": { year: 1849, text: "A Gold Rush voyager entered the Golden Gate.", href: "https://www.nps.gov/safr/learn/historyculture/this-day-in-maritime-history-august.htm" },
+    "08-28": { year: 1872, text: "San Francisco’s City and County Hospital opened on Potrero Avenue.", href: "https://sfghf.org/150-years/" },
     "10-17": { year: 1989, text: "The Loma Prieta earthquake reshaped the Bay.", href: "https://earthquake.usgs.gov/earthquakes/events/1989lomaprieta/" },
     "10-08": { year: 1849, text: "A prefabricated Methodist church was dedicated on Powell Street.", href: "https://legacy.sfgenealogy.org/sf/history/hbbeg17.htm" },
     "10-13": { year: 1849, text: "California’s first state constitution was signed after the constitutional convention.", href: "https://legacy.sfgenealogy.org/sf/history/hbbegn11.htm" },
@@ -163,7 +164,6 @@ function eventCandidates(context, daily) {
   const pattern = CONFIG[context].direct;
   const reject = CONFIG[context].reject;
   const local = new Map();
-  const fallback = new Map();
   for (const date of DATES) {
     const data = daily[date] ?? {};
     const entries = [
@@ -181,16 +181,15 @@ function eventCandidates(context, daily) {
         text: cleanText(text),
         href: factHref(entry),
         score: (entry.selected ? 1000 : 500) + (isThemed ? 240 : 0) + significance - grim,
-        sourceType: isLocal ? "event" : "global-event",
+        sourceType: "event",
         isLocal,
       };
     }).filter((entry) => Number.isFinite(entry.year) && entry.text);
     candidates.sort((a, b) => b.score - a.score || a.year - b.year);
     const localCandidate = candidates.filter((entry) => entry.isLocal).sort((a, b) => b.score - a.score || a.year - b.year)[0];
     if (localCandidate) local.set(date, localCandidate);
-    if (context !== "SPACE" && candidates[0]) fallback.set(date, candidates[0]);
   }
-  return { local, fallback };
+  return local;
 }
 
 async function milestoneFacts(context, config) {
@@ -257,8 +256,8 @@ LIMIT 12000`;
 function assemble(context, events, milestones) {
   const result = {};
   for (const date of DATES) {
-    const localEvent = events.local.get(date), fallbackEvent = events.fallback.get(date), milestone = milestones.get(date);
-    const generated = milestone?.sourceType === "architecture" ? milestone : localEvent ?? milestone ?? fallbackEvent;
+    const event = events.get(date), milestone = milestones.get(date);
+    const generated = milestone?.sourceType === "architecture" ? milestone : event ?? milestone;
     const fact = OVERRIDES[context]?.[date] ?? generated;
     if (fact) result[date] = { year: fact.year, text: fact.text, href: fact.href, sourceType: OVERRIDES[context]?.[date] ? "curated" : fact.sourceType };
   }
@@ -277,8 +276,8 @@ for (const context of ["NY", "SF", "SPACE"]) {
   console.log(`${context}: ${Object.keys(output[context]).length}/${DATES.length}`, counts, missing.length ? `Missing: ${missing.join(", ")}` : "Complete");
 }
 
-const missing = Object.entries(output).flatMap(([context, facts]) => DATES.filter((date) => !facts[date]).map((date) => `${context}:${date}`));
-if (missing.length) throw new Error(`Incomplete daily fact coverage: ${missing.join(", ")}`);
+const missingSpaceDates = DATES.filter((date) => !output.SPACE[date]);
+if (missingSpaceDates.length) throw new Error(`Incomplete space fact coverage: ${missingSpaceDates.join(", ")}`);
 
 await mkdir(dirname(OUTPUT.pathname), { recursive: true });
 const serialized = Object.fromEntries(Object.entries(output).map(([context, facts]) => [context, Object.fromEntries(Object.entries(facts).map(([date, { year, text, href }]) => [date, { year, text, href }]))]));
