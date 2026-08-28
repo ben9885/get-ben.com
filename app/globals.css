@@ -9,7 +9,7 @@ button { color:inherit; font:inherit; }
 .mono { font-family:"Roboto Mono","SFMono-Regular",Consolas,monospace; text-transform:uppercase; letter-spacing:.055em; font-size:10px; }
 .serif { font-family:"Iowan Old Style","Times New Roman",serif; font-style:italic; font-weight:400; }
 .nav-wrap { position:sticky; top:0; z-index:20; padding:14px var(--gutter); background:transparent; border:0; transition:color 1s ease,background-color .24s ease,backdrop-filter .24s ease,box-shadow .24s ease; }
-.nav-wrap.is-scrolled { background:color-mix(in srgb,var(--nav-bg) 86%,transparent); box-shadow:0 10px 30px rgba(5,20,55,.06); backdrop-filter:blur(18px) saturate(1.18); -webkit-backdrop-filter:blur(18px) saturate(1.18); }
+.nav-wrap.is-scrolled { background:color-mix(in srgb,var(--nav-bg) 80%,transparent); box-shadow:0 8px 24px rgba(5,20,55,.025); backdrop-filter:blur(20px) saturate(1.14); -webkit-backdrop-filter:blur(20px) saturate(1.14); }
 nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px; min-width:0; }
 .nav-links { display:flex; gap:clamp(16px,2.4vw,32px); overflow-x:auto; scrollbar-width:none; flex:1; padding:4px 0; }
 .nav-links::-webkit-scrollbar { display:none; }
