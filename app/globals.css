@@ -32,14 +32,14 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .city-glyph-sf { width:24px; height:17px; -webkit-mask-image:url("/city-icons/sf.svg"); mask-image:url("/city-icons/sf.svg"); }
 .city-glyph-ny { width:22px; height:21px; -webkit-mask-image:url("/city-icons/ny.svg"); mask-image:url("/city-icons/ny.svg"); }
 .city-switch button:hover .city-glyph { transform:scale(1.06); }
-.weather-tip { position:absolute; z-index:2; left:50%; top:calc(100% + 17px); width:240px; max-width:calc(100vw - 32px); padding:12px 14px; display:flex; flex-direction:column; gap:3px; overflow:hidden; background:color-mix(in srgb,var(--nav-bg) 88%,var(--ink) 12%); border:1px solid var(--line); border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,.08); font-size:11px; opacity:1; transform:translateX(-50%); pointer-events:auto; transition:opacity .18s ease,transform .18s ease; }
+.weather-tip { position:absolute; z-index:2; left:50%; top:calc(100% + 17px); width:260px; max-width:calc(100vw - 32px); padding:12px 14px; display:flex; flex-direction:column; gap:3px; overflow:hidden; background:color-mix(in srgb,var(--nav-bg) 88%,var(--ink) 12%); border:1px solid var(--line); border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,.08); font-size:11px; opacity:1; transform:translateX(-50%); pointer-events:auto; transition:opacity .18s ease,transform .18s ease; }
 .city-option:first-child .weather-tip { left:0; transform:none; }
 .city-option:last-child .weather-tip { left:auto; right:0; transform:none; }
 .weather-tip strong { font-size:12px; }
 .weather-tip span { opacity:.7; }
-.weather-fact { min-height:43px; margin-top:7px; padding-top:8px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:3px; }
+.weather-fact { min-height:46px; min-width:0; margin-top:7px; padding-top:8px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:3px; }
 .weather-tip .weather-fact-label { font-size:8px; line-height:1.2; opacity:.56; }
-.weather-tip .weather-fact-copy { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; font-size:10px; line-height:1.25; opacity:.82; }
+.weather-tip .weather-fact-copy { display:-webkit-box; width:100%; min-width:0; overflow:hidden; overflow-wrap:break-word; white-space:normal; -webkit-box-orient:vertical; -webkit-line-clamp:2; font-size:10px; line-height:1.25; opacity:.82; }
 .weather-tip a.weather-fact-copy { transition:opacity .18s ease; }
 .weather-tip a.weather-fact-copy:hover { opacity:1; }
 .atmosphere-background { position:fixed; inset:0; z-index:0; overflow:hidden; background:#1261ee; pointer-events:none; opacity:1; filter:none; transition:opacity 1.25s cubic-bezier(.22,1,.36,1),filter 1.25s cubic-bezier(.22,1,.36,1); }

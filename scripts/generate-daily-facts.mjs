@@ -2,8 +2,6 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 const USER_AGENT = "get-ben.com daily-history research (https://get-ben.com)";
-const ENWIKI_API = "https://en.wikipedia.org/w/api.php";
-const WIKIDATA_API = "https://www.wikidata.org/w/api.php";
 const CACHE_DIR = "/private/tmp/get-ben-daily-facts-cache";
 const OUTPUT = new URL("../app/data/daily-facts.json", import.meta.url);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,22 +15,13 @@ for (let month = 1; month <= 12; month += 1) {
 
 const CONFIG = {
   NY: {
-    category: "People from New York City",
-    categoryDepth: 2,
-    maxPages: 8000,
     direct: /\b(new york(?: city)?|nyc|manhattan|brooklyn|queens|the bronx|staten island|harlem|wall street|times square|central park|broadway)\b/i,
     reject: /\b(upstate new york|new york state|buffalo|rochester|syracuse|albany)\b/i,
   },
   SF: {
-    category: "People from San Francisco",
-    categoryDepth: 2,
-    maxPages: 4000,
     direct: /\b(san francisco|golden gate|alcatraz|presidio|yerba buena|treasure island|bay bridge)\b/i,
   },
   SPACE: {
-    category: "Astronauts",
-    categoryDepth: 2,
-    maxPages: 5000,
     direct: /\b(space(?:craft|flight|walk| station| shuttle| probe| telescope| exploration)?|nasa|cosmonaut|astronaut|satellite|rocket|orbit(?:al|ed|ing)?|moon|lunar|planet|venus|mars|mercury|jupiter|saturn|uranus|neptune|pluto|asteroid|comet|galaxy|galileo|apollo|soyuz|sputnik|voyager|hubble|astronom(?:er|y|ical)|observatory|supernova|eclipse|enceladus)\b/i,
     reject: /\b(operation uranus|aloha from hawaii|rutan voyager|voyager, piloted|satellite awards?|satellite television)\b/i,
   },
@@ -42,6 +31,8 @@ const CONTENT_EXCLUSIONS = /\b(civil rights|human rights|voting rights|women'?s 
 const ARCHITECTURE = /\b(architect|architecture|building|tower|skyscraper|bridge|tunnel|station|terminal|hall|museum|library|theatre|theater|hotel|church|cathedral|temple|park|plaza|square|monument|landmark|district|house|housing|palace|stadium|arena|airport|pier|ferry|fort|presidio)\b/i;
 const GOVERNMENT = /\b(government|mayor|council|court|legislature|authority|department|commission|charter|municipal|public agency|treaty|election|law|administration)\b/i;
 const INFRASTRUCTURE = /\b(subway|rail|railway|transit|road|highway|water|power|utility|port|harbor|airport|bridge|tunnel|station|terminal|ferry|cable car)\b/i;
+const POLITICAL_HISTORY = /\b(president|prime minister|parliament|congress|senate|constitution|constitutional|treaty|election|elected|government|republic|kingdom|empire|independence|declaration|diplomatic|legislature|court|law|administration|mayor|governor)\b/i;
+const DEATH_REFERENCES = /\b(dies?|died|death|dead|killed|fatal|execution|executed|assassinat\w*|murder\w*|massacre|casualties)\b/i;
 
 const OVERRIDES = {
   NY: {
@@ -130,79 +121,6 @@ async function loadOnThisDay() {
   return result;
 }
 
-async function categoryMembers(root, maxDepth, maxPages) {
-  const queue = [{ title: `Category:${root}`, depth: 0 }];
-  const visited = new Set();
-  const pages = new Map();
-  while (queue.length && pages.size < maxPages) {
-    const current = queue.shift();
-    if (visited.has(current.title)) continue;
-    visited.add(current.title);
-    let continuation = "";
-    do {
-      const url = apiUrl(ENWIKI_API, { action: "query", format: "json", formatversion: 2, list: "categorymembers", cmtitle: current.title, cmlimit: "max", cmtype: "page|subcat", ...(continuation ? { cmcontinue: continuation } : {}) });
-      const data = await cachedJson(`category-${current.title}-${continuation || "start"}`, url);
-      for (const member of data.query?.categorymembers ?? []) {
-        if (member.ns === 0) pages.set(member.pageid, member.title);
-        if (member.ns === 14 && current.depth < maxDepth) queue.push({ title: member.title, depth: current.depth + 1 });
-      }
-      continuation = data.continue?.cmcontinue ?? "";
-    } while (continuation && pages.size < maxPages);
-    process.stderr.write(`\r${root}: ${visited.size} categories, ${pages.size} pages`);
-  }
-  process.stderr.write("\n");
-  return [...pages.entries()].slice(0, maxPages).map(([pageid, title]) => ({ pageid, title }));
-}
-
-async function peopleFromCategory(context, config) {
-  const pages = await categoryMembers(config.category, config.categoryDepth, config.maxPages);
-  const pageMeta = new Map();
-  for (let index = 0; index < pages.length; index += 50) {
-    const batch = pages.slice(index, index + 50);
-    const url = apiUrl(ENWIKI_API, { action: "query", format: "json", formatversion: 2, prop: "pageprops|pageviews", ppprop: "wikibase_item", pvipdays: 60, pageids: batch.map((page) => page.pageid).join("|") });
-    const data = await cachedJson(`${context}-pages-${index}`, url);
-    for (const page of data.query?.pages ?? []) {
-      const id = page.pageprops?.wikibase_item;
-      if (!id) continue;
-      const views = Object.values(page.pageviews ?? {}).reduce((sum, value) => sum + (value || 0), 0);
-      pageMeta.set(id, { title: page.title, views });
-    }
-    process.stderr.write(`\r${context} page metadata: ${Math.min(index + 50, pages.length)}/${pages.length}`);
-  }
-  process.stderr.write("\n");
-
-  const people = [];
-  const ids = [...pageMeta.keys()];
-  for (let index = 0; index < ids.length; index += 50) {
-    const batch = ids.slice(index, index + 50);
-    const url = apiUrl(WIKIDATA_API, { action: "wbgetentities", format: "json", formatversion: 2, ids: batch.join("|"), props: "claims|descriptions", languages: "en" });
-    const data = await cachedJson(`${context}-entities-${index}`, url);
-    for (const entity of Object.values(data.entities ?? {})) {
-      const meta = pageMeta.get(entity.id);
-      if (!meta) continue;
-      for (const [property, kind] of [["P569", "born"], ["P570", "died"]]) {
-        const time = entity.claims?.[property]?.[0]?.mainsnak?.datavalue?.value;
-        if (!time?.time || time.precision < 11) continue;
-        const match = /^\+?(\d+)-(\d{2})-(\d{2})T/.exec(time.time);
-        if (!match) continue;
-        people.push({
-          context,
-          kind,
-          date: `${match[2]}-${match[3]}`,
-          year: Number(match[1]),
-          title: meta.title,
-          description: entity.descriptions?.en?.value ?? "",
-          views: meta.views,
-          href: `https://en.wikipedia.org/wiki/${encodeURIComponent(meta.title.replaceAll(" ", "_"))}`,
-        });
-      }
-    }
-    process.stderr.write(`\r${context} historical figures: ${Math.min(index + 50, ids.length)}/${ids.length}`);
-  }
-  process.stderr.write("\n");
-  return people;
-}
-
 function cleanText(text) {
   let value = text
     .replaceAll(/\s+/g, " ")
@@ -244,28 +162,35 @@ function factHref(entry) {
 function eventCandidates(context, daily) {
   const pattern = CONFIG[context].direct;
   const reject = CONFIG[context].reject;
-  const result = new Map();
+  const local = new Map();
+  const fallback = new Map();
   for (const date of DATES) {
     const data = daily[date] ?? {};
     const entries = [
       ...(data.selected ?? []).map((entry) => ({ ...entry, selected: true })),
       ...(data.events ?? []).map((entry) => ({ ...entry, selected: false })),
     ];
-    const candidates = entries.filter((entry) => pattern.test(entry.text ?? "") && !(reject?.test(entry.text ?? "")) && !CONTENT_EXCLUSIONS.test(entry.text ?? "")).map((entry) => {
+    const candidates = entries.filter((entry) => !CONTENT_EXCLUSIONS.test(entry.text ?? "") && !DEATH_REFERENCES.test(entry.text ?? "")).map((entry) => {
+      const text = entry.text ?? "";
+      const isLocal = pattern.test(text) && !(reject?.test(text));
+      const isThemed = ARCHITECTURE.test(text) || GOVERNMENT.test(text) || INFRASTRUCTURE.test(text) || POLITICAL_HISTORY.test(text);
       const significance = /\b(first|discover|launch|land|open|found|inaugurat|debut|dedicat|completed|signed|began|established|introduced)\w*/i.test(entry.text ?? "") ? 90 : 0;
       const grim = /\b(kill|murder|assassinat|crash|explod|massacre|attack|disaster)\w*/i.test(entry.text ?? "") ? 260 : 0;
       return {
         year: Number(entry.year),
-        text: cleanText(entry.text ?? ""),
+        text: cleanText(text),
         href: factHref(entry),
-        score: (entry.selected ? 1000 : 500) + significance - grim,
-        sourceType: "event",
+        score: (entry.selected ? 1000 : 500) + (isThemed ? 240 : 0) + significance - grim,
+        sourceType: isLocal ? "event" : "global-event",
+        isLocal,
       };
     }).filter((entry) => Number.isFinite(entry.year) && entry.text);
     candidates.sort((a, b) => b.score - a.score || a.year - b.year);
-    if (candidates[0]) result.set(date, candidates[0]);
+    const localCandidate = candidates.filter((entry) => entry.isLocal).sort((a, b) => b.score - a.score || a.year - b.year)[0];
+    if (localCandidate) local.set(date, localCandidate);
+    if (context !== "SPACE" && candidates[0]) fallback.set(date, candidates[0]);
   }
-  return result;
+  return { local, fallback };
 }
 
 async function milestoneFacts(context, config) {
@@ -329,38 +254,11 @@ LIMIT 12000`;
   return byDate;
 }
 
-const UNSUITABLE = /\b(murder|killer|child molester|rapist|terrorist|pornographic|criminal|mass shooter|nazi|missing child|victim|gangster|mobster)\b/i;
-const PREFERRED = /\b(artist|architect|designer|scientist|astronomer|astronaut|engineer|inventor|writer|author|musician|composer|director|actor|photographer|entrepreneur|founder|activist|athlete|journalist|educator|physician)\b/i;
-
-function personFact(person) {
-  let description = person.description.replaceAll(/\s*\([^)]*\)\s*/g, " ").replaceAll(/\s+/g, " ").trim();
-  if (description.length > 52) description = description.split(/,|;| who /i)[0];
-  const action = person.kind === "born" ? "was born" : "died";
-  let text = description ? `${person.title}, ${description}, ${action}.` : `${person.title} ${action}.`;
-  text = cleanText(text);
-  return {
-    year: person.year,
-    text,
-    href: person.href,
-    sourceType: person.kind,
-    score: Math.log10(person.views + 1) * 100 + (PREFERRED.test(person.description) ? 70 : 0) + (person.kind === "born" ? 10 : 0),
-  };
-}
-
-function assemble(context, events, milestones, people) {
+function assemble(context, events, milestones) {
   const result = {};
-  const peopleByDate = new Map();
-  for (const person of people) {
-    if (person.kind === "born") continue;
-    if (UNSUITABLE.test(person.description)) continue;
-    if (CONTENT_EXCLUSIONS.test(`${person.title} ${person.description}`)) continue;
-    const fact = personFact(person);
-    const current = peopleByDate.get(person.date);
-    if (!current || fact.score > current.score) peopleByDate.set(person.date, fact);
-  }
   for (const date of DATES) {
-    const event = events.get(date), milestone = milestones.get(date), person = peopleByDate.get(date);
-    const generated = milestone?.sourceType === "architecture" ? milestone : event ?? milestone ?? person;
+    const localEvent = events.local.get(date), fallbackEvent = events.fallback.get(date), milestone = milestones.get(date);
+    const generated = milestone?.sourceType === "architecture" ? milestone : localEvent ?? milestone ?? fallbackEvent;
     const fact = OVERRIDES[context]?.[date] ?? generated;
     if (fact) result[date] = { year: fact.year, text: fact.text, href: fact.href, sourceType: OVERRIDES[context]?.[date] ? "curated" : fact.sourceType };
   }
@@ -371,10 +269,9 @@ await mkdir(CACHE_DIR, { recursive: true });
 const daily = await loadOnThisDay();
 const output = {};
 for (const context of ["NY", "SF", "SPACE"]) {
-  const people = await peopleFromCategory(context, CONFIG[context]);
   const events = eventCandidates(context, daily);
   const milestones = await milestoneFacts(context, CONFIG[context]);
-  output[context] = assemble(context, events, milestones, people);
+  output[context] = assemble(context, events, milestones);
   const missing = DATES.filter((date) => !output[context][date]);
   const counts = Object.values(output[context]).reduce((acc, fact) => ({ ...acc, [fact.sourceType]: (acc[fact.sourceType] ?? 0) + 1 }), {});
   console.log(`${context}: ${Object.keys(output[context]).length}/${DATES.length}`, counts, missing.length ? `Missing: ${missing.join(", ")}` : "Complete");
