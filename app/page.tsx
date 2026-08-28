@@ -143,7 +143,7 @@ export default function Home() {
 
       <section id="investments" className="reveal">
         <div className="section-head"><p className="section-label mono">03 / Angel portfolio</p><h2>Investments</h2></div>
-        <div className="index investments"><div className="index-head mono"><span>Company</span><span>Stage</span><span>Year</span></div>{investments.map(([name, href, stage, year]) => <div className="index-row" key={name}><span>{href ? <ExternalLink href={href}>{name}</ExternalLink> : name}</span><span>{stage}</span><span className="mono">{year}</span></div>)}</div>
+        <div className="index investments"><div className="index-head mono"><span>Company</span><span>Stage</span><span>Year</span></div>{investments.map(([name, href, stage, year]) => <div className="index-row" key={name}><span>{href ? <ExternalLink href={href}>{name}</ExternalLink> : name}</span><span className="mono">{stage}</span><span className="mono">{year}</span></div>)}</div>
       </section>
 
       <section id="projects" className="reveal">
