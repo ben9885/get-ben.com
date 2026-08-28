@@ -6,14 +6,25 @@ import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type Environment
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
 const SpaceView = lazy(() => import("./space-view"));
 
-const projects = [
-  { n: "01", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
-  { n: "02", title: "State of Independence", date: "Jun 2021", id: "562895784" },
-  { n: "03", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
-  { n: "04", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
+type Project = {
+  n: string;
+  title: string;
+  date: string;
+  id?: string;
+  hash?: string;
+  href?: string;
+};
+
+const projects: Project[] = [
+  { n: "01", title: "The Human Creativity Benchmark", date: "Jun 2026", href: "https://x.com/contraben/status/2049884767630286859" },
+  { n: "02", title: "Introducing Contra Labs", date: "Mar 2026", href: "https://x.com/contraben/status/2039021014244262000" },
+  { n: "03", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
+  { n: "04", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
   { n: "05", title: "Portfolios on Contra", date: "Feb 2023", id: "798573043" },
-  { n: "06", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
-  { n: "07", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
+  { n: "06", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
+  { n: "07", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
+  { n: "08", title: "State of Independence", date: "Jun 2021", id: "562895784" },
+  { n: "09", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
 ];
 
 const investments = [
@@ -58,9 +69,14 @@ function Navigation({ active, citySwitcher }: { active: string; citySwitcher: Re
   return <header className="nav-wrap"><nav aria-label="Primary"><a href="#about" className="monogram" aria-label="Ben Huffman, home">BH</a><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
 }
 
-function ProjectRow({ item }: { item: typeof projects[number] }) {
+function ProjectRow({ item }: { item: Project }) {
   const [open, setOpen] = useState(false);
-  const src = `https://player.vimeo.com/video/${item.id}${item.hash ? `?h=${item.hash}` : ""}`;
+  if (item.href) return <div className="project project-link">
+    <a className="project-row" data-space-effect="orbit" href={item.href} target="_blank" rel="noreferrer">
+      <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="mono date">{item.date}</span><span className="toggle external-toggle" aria-hidden="true">↗</span>
+    </a>
+  </div>;
+  const src = `https://player.vimeo.com/video/${item.id ?? ""}${item.hash ? `?h=${item.hash}` : ""}`;
   return <div className={`project ${open ? "is-open" : ""}`}>
     <button className="project-row" data-space-effect="frame" onClick={(event) => {
       const next = !open, rect = event.currentTarget.getBoundingClientRect();

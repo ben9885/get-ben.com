@@ -105,6 +105,8 @@ a:hover .arrow { transform:translate(3px,-3px); }
 .project-row:hover .project-title { padding-left:8px; }
 .toggle { font-size:20px; text-align:right; font-weight:300; transition:transform .5s cubic-bezier(.16,1,.3,1); }
 .is-open .toggle { transform:rotate(180deg); }
+.external-toggle { font-size:16px; }
+.project-link .project-row:hover .external-toggle { transform:translate(3px,-3px); }
 .video-shell { display:grid; grid-template-rows:0fr; transition:grid-template-rows .65s cubic-bezier(.16,1,.3,1); }
 .is-open .video-shell { grid-template-rows:1fr; }
 .video { overflow:hidden; aspect-ratio:16/9; margin-bottom:24px; background:var(--ink); clip-path:inset(0 0 100% 0); transform:translateY(-12px) scale(.985); opacity:0; transition:clip-path .75s cubic-bezier(.16,1,.3,1),transform .75s cubic-bezier(.16,1,.3,1),opacity .35s ease; }
