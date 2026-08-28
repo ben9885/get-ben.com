@@ -128,7 +128,7 @@ export default function Home() {
     <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
-        <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative × Researcher × Investor</p></div>
+        <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative Researcher × Angel Investor</p></div>
         <h1>Hey, I’m Ben<span className="serif">.</span></h1>
         <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
         <div className="hero-socials" aria-label="Social links">
