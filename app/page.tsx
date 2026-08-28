@@ -128,13 +128,14 @@ export default function Home() {
     <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
-        <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative × Researcher × Investor</p><div className="hero-socials" aria-label="Social links">
+        <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative × Researcher × Investor</p></div>
+        <h1>Hey, I’m Ben<span className="serif">.</span></h1>
+        <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
+        <div className="hero-socials" aria-label="Social links">
           <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on X"><span aria-hidden>X</span></a>
           <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on LinkedIn"><span className="linkedin-icon" aria-hidden>in</span></a>
           <a href="https://contra.com/ben" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on Contra"><ContraMark /></a>
-        </div></div>
-        <h1>Hey, I’m Ben<span className="serif">.</span></h1>
-        <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
+        </div>
       </section>
 
       <section id="contra" className="statement reveal">
