@@ -18,13 +18,14 @@ type Project = {
 const projects: Project[] = [
   { n: "01", title: "The Human Creativity Benchmark", date: "Jun 2026", href: "https://x.com/contraben/status/2049884767630286859" },
   { n: "02", title: "Introducing Contra Labs", date: "Mar 2026", href: "https://x.com/contraben/status/2039021014244262000" },
-  { n: "03", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
-  { n: "04", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
-  { n: "05", title: "Portfolios on Contra", date: "Feb 2023", id: "798573043" },
-  { n: "06", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
-  { n: "07", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
-  { n: "08", title: "State of Independence", date: "Jun 2021", id: "562895784" },
-  { n: "09", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
+  { n: "03", title: "Introducing Contra Payments", date: "Feb 2026", href: "https://x.com/contraben/status/2024182864506761617" },
+  { n: "04", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
+  { n: "05", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
+  { n: "06", title: "Portfolios on Contra", date: "Feb 2023", id: "798573043" },
+  { n: "07", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
+  { n: "08", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
+  { n: "09", title: "State of Independence", date: "Jun 2021", id: "562895784" },
+  { n: "10", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
 ];
 
 const investments = [
