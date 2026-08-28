@@ -83,6 +83,10 @@ function paletteAt(s:{hour:number;sunrise:number;sunset:number}) {
 }
 export function weatherLabel(code:number) { if(code===0)return "Clear"; if(code<=2)return "Partly cloudy"; if(code===3)return "Overcast"; if([45,48].includes(code))return "Fog"; if(code>=71&&code<=77)return "Snow"; if(code>=95)return "Storm"; if((code>=51&&code<=67)||(code>=80&&code<=82))return "Rain"; return "Cloudy"; }
 
+function setMarqueePlaybackRate(root:ParentNode,rate:number) {
+  root.querySelectorAll<HTMLElement>(".weather-marquee-track").forEach(track=>track.getAnimations().forEach(animation=>{animation.playbackRate=rate}));
+}
+
 function generateAtmosphere(city:City, weather:WeatherState, date=new Date()):Atmosphere {
   date = new Date(date); date.setSeconds(0,0);
   const solar=solarState(date,city), base=paletteAt(solar), clouds=(weather?.cloudCover??35)/100, humidity=(weather?.humidity??55)/100;
@@ -140,6 +144,19 @@ function TelescopeIcon() {
 
 export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
   const now=new Date(),c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(now),orbit=orbitTemperature(now,city);
+  useEffect(()=>{
+    let lastY=window.scrollY,lastAt=performance.now(),settle=0;
+    const onScroll=()=>{
+      const currentY=window.scrollY,currentAt=performance.now(),velocity=Math.abs(currentY-lastY)/Math.max(16,currentAt-lastAt);
+      lastY=currentY;lastAt=currentAt;
+      if(document.documentElement.dataset.marqueeHover)return;
+      setMarqueePlaybackRate(document,Math.min(1.15,1+velocity*.12));
+      window.clearTimeout(settle);
+      settle=window.setTimeout(()=>setMarqueePlaybackRate(document,1),140);
+    };
+    window.addEventListener("scroll",onScroll,{passive:true});
+    return()=>{window.removeEventListener("scroll",onScroll);window.clearTimeout(settle)};
+  },[]);
   const chooseCity=(next:City)=>{setCity(next);onMode(next.toLowerCase() as EnvironmentMode)};
   const details=(space=false)=>{
     const fact=dailyCardFact(space?"SPACE":city,now);
@@ -147,14 +164,14 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
     const condition=space?orbit.state:weather?weatherLabel(weather.weatherCode):"Atmosphere syncing";
     const location=space?"Near-earth orbit":c.name;
     const marqueeRun=(duplicate=false)=><div className="weather-marquee-run" aria-hidden={duplicate||undefined}>
-      <span className="weather-marquee-live mono">Live · {location}</span>
+      <span className="weather-marquee-live mono"><i className="weather-live-dot" aria-hidden />Live · {location}</span>
       <strong>{metric}</strong>
       <span>{condition}</span>
       <span>{time}{space?" UTC":""}</span>
-      <span className="weather-marquee-divider" aria-hidden>✦</span>
+      <span className="weather-marquee-divider" aria-hidden />
       <span className="mono">{fact.label}</span>
       {fact.href&&!duplicate?<a href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span>{fact.text}{fact.href&&<span aria-hidden> ↗</span>}</span>}
-      <span className="weather-marquee-divider" aria-hidden>✦</span>
+      <span className="weather-marquee-divider" aria-hidden />
     </div>;
     return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
       <div className="weather-card-body">
@@ -162,8 +179,13 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
         <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
         <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
       </div>
-      <div className="weather-marquee" aria-label={`Live ${location}: ${metric}, ${condition}, ${time}${space?" UTC":""}. ${fact.label}: ${fact.text}`}>
-        <div className="weather-marquee-track">{marqueeRun()}{marqueeRun(true)}</div>
+      <div className="weather-marquee" role="group" aria-label={`Live ${location}: ${metric}, ${condition}, ${time}${space?" UTC":""}. ${fact.label}: ${fact.text}`}
+        onPointerEnter={event=>{document.documentElement.dataset.marqueeHover="true";setMarqueePlaybackRate(event.currentTarget,.28)}}
+        onPointerLeave={event=>{delete document.documentElement.dataset.marqueeHover;setMarqueePlaybackRate(event.currentTarget,1)}}
+        onFocusCapture={event=>{document.documentElement.dataset.marqueeHover="true";setMarqueePlaybackRate(event.currentTarget,0)}}
+        onBlurCapture={event=>{delete document.documentElement.dataset.marqueeHover;setMarqueePlaybackRate(event.currentTarget,1)}}>
+        <div className="weather-marquee-layer"><div className="weather-marquee-track">{marqueeRun()}{marqueeRun(true)}</div></div>
+        <div className="weather-marquee-focus" aria-hidden><div className="weather-marquee-track">{marqueeRun(true)}{marqueeRun(true)}</div></div>
       </div>
     </div>;
   };
