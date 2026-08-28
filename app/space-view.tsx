@@ -170,12 +170,6 @@ export default function SpaceView({ active }: { active: boolean }) {
       const loop = n / total * 4, side = Math.floor(loop), u = loop - side, width = open ? 1.05 : .78, height = width * .5625;
       return [side === 0 ? -width + u * width * 2 : side === 1 ? width : side === 2 ? width - u * width * 2 : -width, side === 0 ? height : side === 1 ? height - u * height * 2 : side === 2 ? -height : -height + u * height * 2];
     }, open ? .95 : .7);
-    const emitClickConstellation = (origin: THREE.Vector3) => emitTargetShape(origin, mobile ? 6 : 9, (n, total) => {
-      const edge = Math.floor(n / (total / 3)), u = (n % (total / 3)) / Math.max(1, total / 3 - 1);
-      const points: [number, number][] = [[0, .42], [-.45, -.3], [.52, -.2]];
-      const a = points[edge], b = points[(edge + 1) % 3];
-      return [THREE.MathUtils.lerp(a[0], b[0], u), THREE.MathUtils.lerp(a[1], b[1], u)];
-    }, .72);
     const pendingBursts: Burst[] = [];
 
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), ray = new THREE.Raycaster(), pointerNdc = new THREE.Vector2();
@@ -206,7 +200,7 @@ export default function SpaceView({ active }: { active: boolean }) {
       if (!dragged && now - lastClick > 600) {
         lastClick = now;
         const point = worldPoint(event.clientX, event.clientY); starMaterial.uniforms.clickPoint.value.set(point.x, point.y); starMaterial.uniforms.pulse.value = .001; emitCore(point);
-        if (!reduced) { emitClickConstellation(point); pendingBursts.push({ at: now + 85, point }); }
+        if (!reduced) pendingBursts.push({ at: now + 85, point });
       }
       down = false;
     };
@@ -218,7 +212,7 @@ export default function SpaceView({ active }: { active: boolean }) {
     };
     addEventListener("pointermove", onPointerMove, { passive: true }); addEventListener("pointerdown", onPointerDown, { passive: true }); addEventListener("pointerup", onPointerUp, { passive: true }); addEventListener("pointerleave", onPointerLeave); addEventListener("space-interaction", onSpaceInteraction);
 
-    let sectionCenters: number[] = [], scrollVelocity = 0, lastScroll = scrollY, lastTime = performance.now(), frame = 0, currentPointerX = 0, currentPointerY = 0, smoothMorph = 0, lastIdleFrame = 0;
+    let sectionCenters: number[] = [], scrollVelocity = 0, lastScroll = scrollY, lastTime = performance.now(), frame = 0, currentPointerX = 0, currentPointerY = 0, smoothMorph = 0;
     const measure = () => { sectionCenters = SECTION_IDS.map(id => { const element = document.getElementById(id); return element ? element.offsetTop + element.offsetHeight * .5 : 0; }); };
     const resizeObserver = new ResizeObserver(measure); SECTION_IDS.forEach(id => { const el = document.getElementById(id); if (el) resizeObserver.observe(el); }); measure();
     const scrollState = () => {
@@ -235,11 +229,7 @@ export default function SpaceView({ active }: { active: boolean }) {
     };
     const gravityPoints = [[3.6, 1.25], [3.15, .55], [3.85, .1], [3.15, .15], [3.7, .15], [3.25, .15]];
     const animate = (now: number) => {
-      frame = requestAnimationFrame(animate);
-      if (document.visibilityState === "hidden") return;
-      if (!activeRef.current && starMaterial.uniforms.opacity.value < .002) return;
-      if (!activeRef.current && now - lastIdleFrame < 90) return;
-      lastIdleFrame = now;
+      frame = requestAnimationFrame(animate); if (!activeRef.current && starMaterial.uniforms.opacity.value < .002) return;
       const dt = Math.min(.04, (now - lastTime) / 1000); lastTime = now; const state = scrollState();
       if (state.index !== pair) {
         pair = state.index; smoothMorph = state.t;

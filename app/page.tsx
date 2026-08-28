@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
@@ -55,27 +55,7 @@ function ExternalLink({ href, children, className = "" }: { href: string; childr
 }
 
 function Navigation({ active, citySwitcher }: { active: string; citySwitcher: React.ReactNode }) {
-  const linksRef = useRef<HTMLDivElement>(null);
-  const [indicator, setIndicator] = useState({ x: 0, width: 0 });
-  const [pulse, setPulse] = useState(false);
-  useLayoutEffect(() => {
-    const links = linksRef.current;
-    if (!links) return;
-    const measure = () => {
-      const selected = links.querySelector<HTMLElement>("a.active");
-      if (selected) setIndicator({ x: selected.offsetLeft, width: selected.offsetWidth });
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(links);
-    return () => observer.disconnect();
-  }, [active]);
-  useEffect(() => {
-    setPulse(true);
-    const timer = setTimeout(() => setPulse(false), 420);
-    return () => clearTimeout(timer);
-  }, [active]);
-  return <header className={`nav-wrap ${pulse ? "section-pulse" : ""}`}><nav aria-label="Primary"><a href="#about" className="monogram" aria-label="Ben Huffman, home"><span className="monogram-short">BH</span><span className="monogram-long">BEN HUFFMAN</span></a><div className="nav-links" ref={linksRef}>{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}<span className="nav-indicator" aria-hidden style={{ transform: `translateX(${indicator.x}px)`, width: indicator.width }} /></div>{citySwitcher}</nav></header>;
+  return <header className="nav-wrap"><nav aria-label="Primary"><a href="#about" className="monogram" aria-label="Ben Huffman, home">BH</a><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
 }
 
 function ProjectRow({ item }: { item: typeof projects[number] }) {
@@ -87,7 +67,7 @@ function ProjectRow({ item }: { item: typeof projects[number] }) {
       window.dispatchEvent(new CustomEvent("space-interaction", { detail: { type: "project", x: rect.left + rect.width * .62, y: rect.top + rect.height * .5, open: next } }));
       setOpen(next);
     }} aria-expanded={open}>
-      <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="project-preview" aria-hidden><img src={`https://vumbnail.com/${item.id}.jpg`} alt="" loading="lazy" /></span><span className="mono date">{item.date}</span><span className="toggle" aria-hidden><i /><i /></span>
+      <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="mono date">{item.date}</span><span className="toggle">{open ? "−" : "+"}</span>
     </button>
     <div className="video-shell">{open && <div className="video"><iframe src={src} allow="autoplay; fullscreen; picture-in-picture" allowFullScreen title={item.title} loading="lazy" /></div>}</div>
   </div>;
@@ -106,7 +86,6 @@ export default function Home() {
   useLayoutEffect(() => {
     const root = document.documentElement;
     const targets = Array.from(document.querySelectorAll<HTMLElement>(".hero > :not(.hero-notes), .hero-notes, .statement > *, .section-head, .subhead, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
-    const headings = Array.from(document.querySelectorAll<HTMLElement>(".section-head h2"));
     targets.forEach((target, index) => {
       target.classList.add("motion-item");
       if (target.matches(".research-row,.index-row,.project")) target.classList.add("motion-row");
@@ -122,11 +101,6 @@ export default function Home() {
       progressFrame = 0;
       const available = Math.max(1, document.documentElement.scrollHeight - innerHeight);
       root.style.setProperty("--page-progress", String(Math.min(1, Math.max(0, scrollY / available))));
-      headings.forEach(heading => {
-        const rect = heading.getBoundingClientRect();
-        const centered = (rect.top + rect.height * .5 - innerHeight * .5) / innerHeight;
-        heading.style.setProperty("--heading-shift", `${Math.max(-8, Math.min(8, centered * -12)).toFixed(2)}px`);
-      });
     };
     const onScroll = () => { if (!progressFrame) progressFrame = requestAnimationFrame(updateProgress); };
     const sizeObserver = new ResizeObserver(onScroll); sizeObserver.observe(document.body);
@@ -134,7 +108,7 @@ export default function Home() {
     return () => { observer.disconnect(); sizeObserver.disconnect(); removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); if (progressFrame) cancelAnimationFrame(progressFrame); root.classList.remove("motion-ready"); root.style.removeProperty("--page-progress"); };
   }, []);
   useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
-  const setMode=(next:EnvironmentMode)=>{if(next===mode)return;const root=document.documentElement;root.dataset.environmentFrom=mode;root.dataset.environmentTo=next;root.classList.remove("environment-transition");requestAnimationFrame(()=>root.classList.add("environment-transition"));setTimeout(()=>root.classList.remove("environment-transition"),1300);setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
+  const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
   useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
 
   return <>
