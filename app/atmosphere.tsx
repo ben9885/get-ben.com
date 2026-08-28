@@ -48,6 +48,15 @@ function solarState(date:Date, city:City) {
   const h=Math.acos(clamp(cosH,-1,1))*180/Math.PI, noon=(720-4*c.lng-eq)/60+offset;
   return { hour, altitude:altitude*180/Math.PI, azimuth, sunrise:noon-h/15, sunset:noon+h/15 };
 }
+function smoothstep(min:number,max:number,value:number) { const t=clamp((value-min)/(max-min)); return t*t*(3-2*t); }
+function orbitTemperature(date:Date,city:City,altitudeKm=400) {
+  const earthRadiusKm=6371,shadowAngle=Math.acos(earthRadiusKm/(earthRadiusKm+altitudeKm))*180/Math.PI;
+  const solar=solarState(date,city),next=solarState(new Date(date.getTime()+60000),city);
+  const illumination=smoothstep(-shadowAngle-1.5,-shadowAngle+1.5,solar.altitude);
+  const temperature=Math.round(-148+396*illumination);
+  const state=illumination<=.05?"Earth shadow":illumination>=.95?`Sunlit over ${city}`:next.altitude>solar.altitude?"Entering sunlight":"Entering shadow";
+  return {temperature,state,altitudeKm};
+}
 function paletteAt(s:{hour:number;sunrise:number;sunset:number}) {
   const anchors=[
     {t:0,p:"night"},{t:Math.max(0,s.sunrise-.85),p:"predawn"},{t:s.sunrise,p:"sunrise"},{t:s.sunrise+1.5,p:"morning"},
@@ -114,9 +123,9 @@ function TelescopeIcon() {
 }
 
 export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
-  const c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(new Date());
+  const now=new Date(),c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(now),orbit=orbitTemperature(now,city);
   const chooseCity=(next:City)=>{setCity(next);onMode(next.toLowerCase() as EnvironmentMode)};
-  const details=(space=false)=><div className="weather-tip" role="status"><strong>{space?"Space":c.name}</strong><span>{space?"Telescope view":weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}{space?" UTC":""}</span></div>;
+  const details=(space=false)=><div className="weather-tip" role="status" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:undefined}><strong>{space?"Space":c.name}</strong><span>{space?`≈${orbit.temperature}°F · ${orbit.state}`:weather?`${Math.round(weather.temperature)}° · ${weatherLabel(weather.weatherCode)}`:"Local solar atmosphere"}</span><span>{time}{space?" UTC":""}</span></div>;
   return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view">
     <div className="city-option"><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><span className="city-glyph city-glyph-ny" aria-hidden />NY</button>{mode==="ny"&&details()}</div>
     <div className="city-option"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><span className="city-glyph city-glyph-sf" aria-hidden />SF</button>{mode==="sf"&&details()}</div>
