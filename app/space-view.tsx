@@ -16,6 +16,14 @@ function random(seed: number) {
   return () => ((value = Math.imul(value ^ value >>> 15, 1 | value), value ^= value + Math.imul(value ^ value >>> 7, 61 | value), ((value ^ value >>> 14) >>> 0) / 4294967296));
 }
 
+function spectralColor(rnd: () => number, accentBias = 0) {
+  const roll = rnd() - accentBias;
+  if (roll < .82) return new THREE.Color().setHSL(.59 + rnd() * .045, .04 + rnd() * .1, .82 + rnd() * .14);
+  if (roll < .89) return new THREE.Color(0x7fdcff).lerp(new THREE.Color(0xffffff), .28 + rnd() * .3);
+  if (roll < .95) return new THREE.Color(0x8d7cff).lerp(new THREE.Color(0xffffff), .22 + rnd() * .32);
+  return new THREE.Color(0xffbf73).lerp(new THREE.Color(0xffffff), .28 + rnd() * .38);
+}
+
 function signaturePoint(section: number, index: number, rnd: () => number) {
   const t = index / SIGNATURE_STARS;
   if (section === 0) {
@@ -97,6 +105,18 @@ export default function SpaceView({ active }: { active: boolean }) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.2 : 1.5)); renderer.setSize(innerWidth, innerHeight); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
+    const nebulaGeo = new THREE.PlaneGeometry(2, 2);
+    const nebulaMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        time: { value: 0 }, resolution: { value: new THREE.Vector2(innerWidth, innerHeight) }, pointer: { value: new THREE.Vector2(.5, .5) },
+        scroll: { value: 0 }, section: { value: 0 }, clickPoint: { value: new THREE.Vector2(.5, .5) }, clickPulse: { value: 0 }
+      },
+      transparent: true, depthWrite: false, depthTest: false,
+      vertexShader: `varying vec2 vUv;void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,0.,1.);}`,
+      fragmentShader: `varying vec2 vUv;uniform float time;uniform vec2 resolution;uniform vec2 pointer;uniform float scroll;uniform float section;uniform vec2 clickPoint;uniform float clickPulse;float hash(vec2 p){p=fract(p*vec2(123.34,345.45));p+=dot(p,p+34.345);return fract(p.x*p.y);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.)),f.x),f.y);}float fbm(vec2 p){float value=0.,amplitude=.52;mat2 turn=mat2(.8,.6,-.6,.8);for(int i=0;i<4;i++){value+=noise(p)*amplitude;p=turn*p*2.03+11.7;amplitude*=.5;}return value;}void main(){vec2 uv=vUv;float aspect=resolution.x/max(resolution.y,1.);vec2 p=vec2(uv.x*aspect,uv.y);vec2 mouse=vec2(pointer.x*aspect,pointer.y);float drift=time*.018;float sectionWave=sin(section*1.47)*.5+.5;vec2 flow=vec2(drift+scroll*.009,-drift*.42-scroll*.005);float broad=fbm(p*1.08+flow);float detail=fbm(p*2.28-flow*.62+vec2(3.7,8.1));float coolField=smoothstep(.38,.84,broad*.72+detail*.34);float coolAnchor=1.-smoothstep(.12,1.05,distance(p,vec2(aspect*.74,.72)+vec2((mouse.x-aspect*.5)*.06,(mouse.y-.5)*.06)));float cool=coolField*coolAnchor*(.72+sectionWave*.14);float warmNoise=fbm(p*1.18-flow*.73+vec2(9.2,2.6));float warmDetail=fbm(p*2.7+flow*.35+vec2(1.2,6.4));float warmField=smoothstep(.4,.86,warmNoise*.74+warmDetail*.31);float warmAnchor=1.-smoothstep(.08,.82,distance(p,vec2(aspect*.48,-.04)+vec2((mouse.x-aspect*.5)*.035,(mouse.y-.5)*.025)));float warm=warmField*warmAnchor*(.64+(1.-sectionWave)*.14);vec3 voidColor=vec3(.003,.007,.026);vec3 midnight=vec3(.015,.055,.16);vec3 cobalt=vec3(.025,.19,.48);vec3 cyan=vec3(.025,.47,.67);vec3 copper=vec3(.38,.115,.055);vec3 amber=vec3(.78,.38,.105);vec3 violet=vec3(.32,.22,.82);vec3 color=mix(voidColor,midnight,smoothstep(.18,.88,broad)*.44);color+=mix(cobalt,cyan,detail)*cool*.42;color+=mix(copper,amber,warmDetail)*warm*.38;color+=violet*min(cool,warm)*.2;float grain=(hash(gl_FragCoord.xy+time)-.5)*.012;color+=grain;vec2 clickUv=vec2(clickPoint.x*aspect,clickPoint.y);float bloom=exp(-dot(p-clickUv,p-clickUv)*38.)*sin(clickPulse*3.14159);color+=mix(violet,vec3(1.,.68,.3),clickPulse)*bloom*.16;float vignette=smoothstep(1.05,.28,length((uv-.5)*vec2(.92,1.08)));color*=.72+.28*vignette;gl_FragColor=vec4(color,.94);}`
+    });
+    const nebula = new THREE.Mesh(nebulaGeo, nebulaMaterial); nebula.frustumCulled = false; nebula.renderOrder = -10; scene.add(nebula);
+
     const count = mobile ? 650 : 1400, compositions = SECTION_IDS.map((_, i) => makeComposition(count, i)), edges = SECTION_IDS.map((_, i) => makeEdges(i));
     const sizes = new Float32Array(count), colors = new Float32Array(count * 3), depths = new Float32Array(count), seeds = new Float32Array(count);
     const rnd = random(7181);
@@ -106,7 +126,7 @@ export default function SpaceView({ active }: { active: boolean }) {
       if (i < SIGNATURE_STARS) sizes[i] *= 1.08;
       if (rnd() < .008) sizes[i] *= 1.45;
       depths[i] = layer; seeds[i] = rnd();
-      const color = new THREE.Color().setHSL(.59 + rnd() * .045, .025 + rnd() * .08, .8 + rnd() * .14);
+      const color = spectralColor(rnd);
       colors.set([color.r, color.g, color.b], i * 3);
     }
     const starsGeo = new THREE.BufferGeometry();
@@ -143,7 +163,7 @@ export default function SpaceView({ active }: { active: boolean }) {
     let cursor = 0;
     const paintTemp = (i: number, size: number, duration: number) => {
       age[i] = 0; life[i] = duration; tempSizes[i] = size;
-      const color = new THREE.Color().setHSL(.6 + Math.random() * .035, .03 + Math.random() * .08, .82 + Math.random() * .12);
+      const color = spectralColor(Math.random, .1);
       tempColors.set([color.r, color.g, color.b], i * 3);
     };
     const emit = (origin: THREE.Vector3, amount: number) => {
@@ -175,9 +195,11 @@ export default function SpaceView({ active }: { active: boolean }) {
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), ray = new THREE.Raycaster(), pointerNdc = new THREE.Vector2();
     const worldPoint = (x: number, y: number) => { pointerNdc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(pointerNdc, camera); const point = new THREE.Vector3(); ray.ray.intersectPlane(plane, point); return point; };
     let pair = 0, pointerTargetX = 0, pointerTargetY = 0, down = false, dragged = false, downX = 0, downY = 0, lastClick = 0, hoveredElement: Element | null = null;
+    const nebulaPointerTarget = new THREE.Vector2(.5, .5), nebulaPointer = new THREE.Vector2(.5, .5);
     const safe = (event: PointerEvent) => (event.target as Element)?.closest?.(SAFE_SELECTOR);
     const onPointerMove = (event: PointerEvent) => {
       pointerTargetX = (event.clientX / innerWidth - .5) * .04; pointerTargetY = -(event.clientY / innerHeight - .5) * .025;
+      nebulaPointerTarget.set(event.clientX / innerWidth, 1 - event.clientY / innerHeight);
       if (!activeRef.current) return;
       const interactive = (event.target as Element)?.closest?.("[data-space-effect]");
       if (safe(event)) {
@@ -200,15 +222,17 @@ export default function SpaceView({ active }: { active: boolean }) {
       if (!dragged && now - lastClick > 600) {
         lastClick = now;
         const point = worldPoint(event.clientX, event.clientY); starMaterial.uniforms.clickPoint.value.set(point.x, point.y); starMaterial.uniforms.pulse.value = .001; emitCore(point);
+        nebulaMaterial.uniforms.clickPoint.value.set(event.clientX / innerWidth, 1 - event.clientY / innerHeight); nebulaMaterial.uniforms.clickPulse.value = .001;
         if (!reduced) pendingBursts.push({ at: now + 85, point });
       }
       down = false;
     };
-    const onPointerLeave = () => { starMaterial.uniforms.hoverActive.value = 0; starMaterial.uniforms.elementHover.value = 0; down = false; };
+    const onPointerLeave = () => { starMaterial.uniforms.hoverActive.value = 0; starMaterial.uniforms.elementHover.value = 0; nebulaPointerTarget.set(.5, .5); down = false; };
     const onSpaceInteraction = (event: Event) => {
       if (!activeRef.current) return;
       const detail = (event as CustomEvent<SpaceInteraction>).detail; if (!detail || detail.type !== "project") return;
       const point = worldPoint(detail.x, detail.y); starMaterial.uniforms.clickPoint.value.set(point.x, point.y); starMaterial.uniforms.pulse.value = .001; emitCore(point); emitProjectFrame(point, detail.open);
+      nebulaMaterial.uniforms.clickPoint.value.set(detail.x / innerWidth, 1 - detail.y / innerHeight); nebulaMaterial.uniforms.clickPulse.value = .001;
     };
     addEventListener("pointermove", onPointerMove, { passive: true }); addEventListener("pointerdown", onPointerDown, { passive: true }); addEventListener("pointerup", onPointerUp, { passive: true }); addEventListener("pointerleave", onPointerLeave); addEventListener("space-interaction", onSpaceInteraction);
 
@@ -238,10 +262,12 @@ export default function SpaceView({ active }: { active: boolean }) {
       smoothMorph += (state.t - smoothMorph) * (reduced ? 1 : .035); const easedMorph = smoothMorph * smoothMorph * (3 - 2 * smoothMorph); starMaterial.uniforms.morph.value = smoothMorph; starMaterial.uniforms.time.value = now * .001;
       const deltaScroll = scrollY - lastScroll; lastScroll = scrollY; scrollVelocity += (THREE.MathUtils.clamp(deltaScroll * .0025, -.38, .38) - scrollVelocity) * .1; scrollVelocity *= .88;
       currentPointerX += (pointerTargetX - currentPointerX) * (reduced ? .2 : .025); currentPointerY += (pointerTargetY - currentPointerY) * (reduced ? .2 : .025); starMaterial.uniforms.pointer.value.set(reduced ? 0 : currentPointerX, reduced ? 0 : currentPointerY); starMaterial.uniforms.scrollForce.value = reduced ? 0 : scrollVelocity;
+      nebulaPointer.lerp(nebulaPointerTarget, reduced ? .18 : .022); nebulaMaterial.uniforms.pointer.value.copy(nebulaPointer); nebulaMaterial.uniforms.time.value = reduced ? 0 : now * .001; nebulaMaterial.uniforms.scroll.value = reduced ? 0 : scrollY / Math.max(innerHeight, 1); nebulaMaterial.uniforms.section.value = pair + easedMorph;
       const gravityA = gravityPoints[pair], gravityB = gravityPoints[Math.min(pair + 1, gravityPoints.length - 1)]; starMaterial.uniforms.gravityPoint.value.set(THREE.MathUtils.lerp(gravityA[0], gravityB[0], easedMorph), THREE.MathUtils.lerp(gravityA[1], gravityB[1], easedMorph)); starMaterial.uniforms.gravityStrength.value = reduced ? 0 : .2 + Math.sin(easedMorph * Math.PI) * .08;
       const linePhase = mobile ? 0 : pair === 1 ? THREE.MathUtils.smoothstep(easedMorph, .25, .92) : pair === 2 ? 1 - THREE.MathUtils.smoothstep(easedMorph, 0, .22) : 0;
       starMaterial.uniforms.opacity.value += ((activeRef.current ? .82 : 0) - starMaterial.uniforms.opacity.value) * (reduced ? .2 : .04); lineMaterial.opacity += ((activeRef.current ? .035 * linePhase : 0) - lineMaterial.opacity) * .055;
       if (starMaterial.uniforms.pulse.value > 0) { starMaterial.uniforms.pulse.value += dt * 1.45; if (starMaterial.uniforms.pulse.value >= 1) starMaterial.uniforms.pulse.value = 0; }
+      if (nebulaMaterial.uniforms.clickPulse.value > 0) { nebulaMaterial.uniforms.clickPulse.value += dt * .78; if (nebulaMaterial.uniforms.clickPulse.value >= 1) nebulaMaterial.uniforms.clickPulse.value = 0; }
       while (pendingBursts.length && pendingBursts[0].at <= now) { const burst = pendingBursts.shift()!; emit(burst.point, mobile ? 14 : 22); }
       for (let i = 0; i < maxTemp; i++) if (life[i] > 0) {
         age[i] += dt; if (age[i] >= life[i]) { life[i] = 0; tempSizes[i] = 0; continue; }
@@ -253,11 +279,11 @@ export default function SpaceView({ active }: { active: boolean }) {
       updateLines(pair, easedMorph); (tempGeo.attributes.position as THREE.BufferAttribute).needsUpdate = true; (tempGeo.attributes.size as THREE.BufferAttribute).needsUpdate = true; (tempGeo.attributes.color as THREE.BufferAttribute).needsUpdate = true; renderer.render(scene, camera);
     };
     frame = requestAnimationFrame(animate);
-    const resize = () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.2 : 1.5)); renderer.setSize(innerWidth, innerHeight); measure(); };
+    const resize = () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 700 ? 1.2 : 1.5)); renderer.setSize(innerWidth, innerHeight); nebulaMaterial.uniforms.resolution.value.set(innerWidth, innerHeight); measure(); };
     addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(frame); resizeObserver.disconnect(); removeEventListener("resize", resize); removeEventListener("pointermove", onPointerMove); removeEventListener("pointerdown", onPointerDown); removeEventListener("pointerup", onPointerUp); removeEventListener("pointerleave", onPointerLeave); removeEventListener("space-interaction", onSpaceInteraction);
-      starsGeo.dispose(); starMaterial.dispose(); lineGeo.dispose(); lineMaterial.dispose(); tempGeo.dispose(); tempMaterial.dispose(); renderer.dispose(); host.replaceChildren();
+      nebulaGeo.dispose(); nebulaMaterial.dispose(); starsGeo.dispose(); starMaterial.dispose(); lineGeo.dispose(); lineMaterial.dispose(); tempGeo.dispose(); tempMaterial.dispose(); renderer.dispose(); host.replaceChildren();
     };
   }, []);
 
