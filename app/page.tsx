@@ -20,13 +20,15 @@ const projects: Project[] = [
   { n: "02", title: "Introducing Contra Labs", date: "Mar 2026", href: "https://x.com/contraben/status/2039021014244262000" },
   { n: "03", title: "Introducing Contra Payments", date: "Feb 2026", href: "https://x.com/contraben/status/2024182864506761617" },
   { n: "04", title: "Introducing Creative Arena", date: "Sep 2025", href: "https://x.com/contraben/status/1968717444685394134" },
-  { n: "05", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
-  { n: "06", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
-  { n: "07", title: "Portfolios on Contra", date: "Feb 2023", id: "798573043" },
-  { n: "08", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
-  { n: "09", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
-  { n: "10", title: "State of Independence", date: "Jun 2021", id: "562895784" },
-  { n: "11", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
+  { n: "05", title: "Introducing Indy AI", date: "Aug 2025", href: "https://x.com/contraben/status/1952725885146075406" },
+  { n: "06", title: "Contra Reaches 1M Users", date: "May 2025", href: "https://x.com/contraben/status/1918053299443401127" },
+  { n: "07", title: "Contra for Companies", date: "Feb 2024", id: "911709177" },
+  { n: "08", title: "Portfolio Magic", date: "Jun 2023", id: "835482460" },
+  { n: "09", title: "Portfolios on Contra", date: "Feb 2023", id: "798573043" },
+  { n: "10", title: "Contra Global Payments", date: "Feb 2022", id: "720360443", hash: "f1e9a9b4cf" },
+  { n: "11", title: "Contra Payments", date: "Nov 2021", id: "639299621" },
+  { n: "12", title: "State of Independence", date: "Jun 2021", id: "562895784" },
+  { n: "13", title: "Contra’s First Launch", date: "Feb 2021", id: "495381947" },
 ];
 
 const investments = [
