@@ -38,6 +38,11 @@ const CONFIG = {
   },
 };
 
+const CONTENT_EXCLUSIONS = /\b(civil rights|human rights|voting rights|women'?s rights|gay rights|lgbt\w*|queer\w*|stonewall|suffrag\w*|abolition\w*|slave|slavery|segregat\w*|desegregat\w*|racial discrimination|emancipat\w*|internment|birthday)\b/i;
+const ARCHITECTURE = /\b(architect|architecture|building|tower|skyscraper|bridge|tunnel|station|terminal|hall|museum|library|theatre|theater|hotel|church|cathedral|temple|park|plaza|square|monument|landmark|district|house|housing|palace|stadium|arena|airport|pier|ferry|fort|presidio)\b/i;
+const GOVERNMENT = /\b(government|mayor|council|court|legislature|authority|department|commission|charter|municipal|public agency|treaty|election|law|administration)\b/i;
+const INFRASTRUCTURE = /\b(subway|rail|railway|transit|road|highway|water|power|utility|port|harbor|airport|bridge|tunnel|station|terminal|ferry|cable car)\b/i;
+
 const OVERRIDES = {
   NY: {
     "01-01": { year: 1898, text: "The five boroughs became one New York City.", href: "https://www.nyc.gov/site/records/historical-records/collections.page" },
@@ -51,13 +56,22 @@ const OVERRIDES = {
   },
   SF: {
     "01-30": { year: 1847, text: "Yerba Buena was renamed San Francisco.", href: "https://www.sfhistory.org/" },
+    "03-13": { year: 1865, text: "The steamships Golden City and America departed with record passenger traffic.", href: "https://legacy.sfgenealogy.org/sf/history/he865.htm" },
+    "03-31": { year: 1850, text: "A federal commission recommended reserving the Presidio for military use.", href: "https://legacy.sfgenealogy.org/sf/history/hbbega.htm" },
+    "04-08": { year: 1862, text: "The Russ House hotel opened to guests.", href: "https://legacy.sfgenealogy.org/sf/history/he862.htm" },
     "04-18": { year: 1906, text: "The great San Francisco earthquake struck.", href: "https://earthquake.usgs.gov/earthquakes/events/1906calif/18april/" },
     "05-27": { year: 1937, text: "The Golden Gate Bridge opened to pedestrians.", href: "https://www.goldengate.org/bridge/history-research/moments-events/bridge-opening/" },
     "06-26": { year: 1945, text: "The United Nations Charter was signed here.", href: "https://www.un.org/en/about-us/history-of-the-un/san-francisco-conference" },
+    "06-29": { year: 1776, text: "Mission Dolores was founded at the edge of the growing settlement.", href: "https://www.sfmuseum.org/hist6/founding.html" },
+    "07-26": { year: 1776, text: "Moraga moved his camp north and began building the early Presidio.", href: "https://www.sfmuseum.org/hist6/founding.html" },
     "08-02": { year: 1873, text: "San Francisco’s first cable car began service.", href: "https://www.sfmta.com/getting-around/muni/cable-cars" },
     "08-27": { year: 1849, text: "A Gold Rush voyager entered the Golden Gate.", href: "https://www.nps.gov/safr/learn/historyculture/this-day-in-maritime-history-august.htm" },
     "10-17": { year: 1989, text: "The Loma Prieta earthquake reshaped the Bay.", href: "https://earthquake.usgs.gov/earthquakes/events/1989lomaprieta/" },
+    "10-08": { year: 1849, text: "A prefabricated Methodist church was dedicated on Powell Street.", href: "https://legacy.sfgenealogy.org/sf/history/hbbeg17.htm" },
+    "10-13": { year: 1849, text: "California’s first state constitution was signed after the constitutional convention.", href: "https://legacy.sfgenealogy.org/sf/history/hbbegn11.htm" },
     "11-20": { year: 1969, text: "The occupation of Alcatraz Island began.", href: "https://www.nps.gov/alca/learn/historyculture/we-hold-the-rock.htm" },
+    "11-06": { year: 2010, text: "The renovated Parkside Branch Library reopened.", href: "https://sfpl.org/sites/default/files/pdf/blip/parksidefaq.pdf" },
+    "12-30": { year: 1911, text: "The Pantages Theatre opened on Market Street.", href: "https://sanfranciscotheatres.blogspot.com/2017/10/pantages-theatre.html" },
   },
   SPACE: {
     "01-31": { year: 1958, text: "Explorer 1 became America’s first satellite.", href: "https://science.nasa.gov/mission/explorer-1/" },
@@ -237,7 +251,7 @@ function eventCandidates(context, daily) {
       ...(data.selected ?? []).map((entry) => ({ ...entry, selected: true })),
       ...(data.events ?? []).map((entry) => ({ ...entry, selected: false })),
     ];
-    const candidates = entries.filter((entry) => pattern.test(entry.text ?? "") && !(reject?.test(entry.text ?? ""))).map((entry) => {
+    const candidates = entries.filter((entry) => pattern.test(entry.text ?? "") && !(reject?.test(entry.text ?? "")) && !CONTENT_EXCLUSIONS.test(entry.text ?? "")).map((entry) => {
       const significance = /\b(first|discover|launch|land|open|found|inaugurat|debut|dedicat|completed|signed|began|established|introduced)\w*/i.test(entry.text ?? "") ? 90 : 0;
       const grim = /\b(kill|murder|assassinat|crash|explod|massacre|attack|disaster)\w*/i.test(entry.text ?? "") ? 260 : 0;
       return {
@@ -252,6 +266,67 @@ function eventCandidates(context, daily) {
     if (candidates[0]) result.set(date, candidates[0]);
   }
   return result;
+}
+
+async function milestoneFacts(context, config) {
+  const propertyCopy = context === "SPACE" ? {
+    P619: ["launched", 260],
+    P620: ["landed", 240],
+  } : {
+    P1619: ["opened", 260],
+    P729: ["entered service", 230],
+    P571: ["was established", 150],
+    P580: ["began", 90],
+    P576: ["closed", 30],
+  };
+  const placeValues = context === "NY"
+    ? "wd:Q60 wd:Q11299 wd:Q18419 wd:Q18424 wd:Q18426 wd:Q271395"
+    : "wd:Q62";
+  const propertyValues = Object.keys(propertyCopy).map((property) => `wdt:${property}`).join(" ");
+  const scope = context === "SPACE" ? "" : `VALUES ?place { ${placeValues} }\n  ?item wdt:P131 ?place.`;
+  const query = `
+SELECT DISTINCT ?item ?itemLabel ?date ?property ?article WHERE {
+  VALUES ?property { ${propertyValues} }
+  ?item ?property ?date.
+  ${scope}
+  ?article schema:about ?item;
+           schema:isPartOf <https://en.wikipedia.org/>.
+  ?item rdfs:label ?itemLabel.
+  FILTER(LANG(?itemLabel) = "en")
+}
+LIMIT 12000`;
+  const endpoint = apiUrl("https://query.wikidata.org/sparql", { query, format: "json" });
+  const data = await cachedJson(`${context}-dated-milestones-sparql-v2`, endpoint);
+  const byDate = new Map();
+  for (const row of data.results?.bindings ?? []) {
+    const property = row.property?.value?.split("/").pop();
+    const copy = propertyCopy[property];
+    const match = /^(-?\d+)-(\d{2})-(\d{2})T/.exec(row.date?.value ?? "");
+    if (!copy || !match || Number(match[1]) <= 0) continue;
+    const rawTitle = row.itemLabel?.value?.trim() ?? "";
+    const qualifier = rawTitle.match(/\(([^)]+)\)/)?.[1] ?? "";
+    let title = rawTitle.replaceAll(/\s*\([^)]*\)\s*/g, "").trim();
+    if (/\b(IRT|BMT|IND|subway|railway|metro)\b/i.test(qualifier) && !/\bstation\b/i.test(title)) {
+      title = `${title} station`;
+    }
+    if (!title || CONTENT_EXCLUSIONS.test(title)) continue;
+    const searchable = title;
+    const isArchitecture = context !== "SPACE" && ARCHITECTURE.test(searchable);
+    const [verb, propertyScore] = copy;
+    if (match[2] === "01" && match[3] === "01" && !["P1619", "P729", "P619", "P620"].includes(property)) continue;
+    const fact = {
+      year: Number(match[1]),
+      text: cleanText(`${title} ${verb}.`),
+      href: row.article?.value,
+      sourceType: isArchitecture ? "architecture" : context === "SPACE" ? "space-milestone" : "civic-milestone",
+      score: propertyScore + (isArchitecture ? 200 : 0) + (GOVERNMENT.test(searchable) ? 150 : 0) + (INFRASTRUCTURE.test(searchable) ? 130 : 0),
+    };
+    const date = `${match[2]}-${match[3]}`;
+    const current = byDate.get(date);
+    if (!current || fact.score > current.score) byDate.set(date, fact);
+  }
+  console.log(`${context} dated milestones: ${byDate.size} calendar dates`);
+  return byDate;
 }
 
 const UNSUITABLE = /\b(murder|killer|child molester|rapist|terrorist|pornographic|criminal|mass shooter|nazi|missing child|victim|gangster|mobster)\b/i;
@@ -272,18 +347,20 @@ function personFact(person) {
   };
 }
 
-function assemble(context, events, people) {
+function assemble(context, events, milestones, people) {
   const result = {};
   const peopleByDate = new Map();
   for (const person of people) {
+    if (person.kind === "born") continue;
     if (UNSUITABLE.test(person.description)) continue;
+    if (CONTENT_EXCLUSIONS.test(`${person.title} ${person.description}`)) continue;
     const fact = personFact(person);
     const current = peopleByDate.get(person.date);
     if (!current || fact.score > current.score) peopleByDate.set(person.date, fact);
   }
   for (const date of DATES) {
-    const event = events.get(date), person = peopleByDate.get(date);
-    const generated = !event ? person : !person ? event : event.score >= person.score ? event : person;
+    const event = events.get(date), milestone = milestones.get(date), person = peopleByDate.get(date);
+    const generated = milestone?.sourceType === "architecture" ? milestone : event ?? milestone ?? person;
     const fact = OVERRIDES[context]?.[date] ?? generated;
     if (fact) result[date] = { year: fact.year, text: fact.text, href: fact.href, sourceType: OVERRIDES[context]?.[date] ? "curated" : fact.sourceType };
   }
@@ -296,7 +373,8 @@ const output = {};
 for (const context of ["NY", "SF", "SPACE"]) {
   const people = await peopleFromCategory(context, CONFIG[context]);
   const events = eventCandidates(context, daily);
-  output[context] = assemble(context, events, people);
+  const milestones = await milestoneFacts(context, CONFIG[context]);
+  output[context] = assemble(context, events, milestones, people);
   const missing = DATES.filter((date) => !output[context][date]);
   const counts = Object.values(output[context]).reduce((acc, fact) => ({ ...acc, [fact.sourceType]: (acc[fact.sourceType] ?? 0) + 1 }), {});
   console.log(`${context}: ${Object.keys(output[context]).length}/${DATES.length}`, counts, missing.length ? `Missing: ${missing.join(", ")}` : "Complete");
