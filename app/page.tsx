@@ -105,7 +105,7 @@ export default function Home() {
   }, []);
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const targets = Array.from(document.querySelectorAll<HTMLElement>(".hero > :not(.hero-notes), .hero-notes, .statement > *, .section-head, .subhead, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".hero > :not(.hero-notes), .hero-notes, .statement > *, .section-head, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
     targets.forEach((target, index) => {
       target.classList.add("motion-item");
       if (target.matches(".research-row,.index-row,.project")) target.classList.add("motion-row");
@@ -168,7 +168,6 @@ export default function Home() {
 
       <section id="projects" className="reveal">
         <div className="section-head"><p className="section-label mono">04 / Selected work</p><h2>Projects</h2></div>
-        <div className="subhead"><h3>Contra Launch Video Music</h3><p>I composed and worked on the music for a series of Contra launch films.</p></div>
         <div className="project-list">{projects.map(p => <ProjectRow key={p.n} item={p} />)}</div>
       </section>
 
