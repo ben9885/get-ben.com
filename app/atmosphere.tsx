@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import dailyFactsData from "./data/daily-facts.json";
 
 export type City = "SF" | "NY";
 export type EnvironmentMode = "sf" | "ny" | "space";
@@ -13,39 +14,9 @@ export const CITIES = {
   NY: { name: "New York", lat: 40.7128, lng: -74.006, zone: "America/New_York", bias: [66, .14, 263] as Oklch },
 } as const;
 
-type DailyFact = { date: string; year: number; text: string; href: string };
-const DAILY_FACTS: Record<City | "SPACE", DailyFact[]> = {
-  NY: [
-    { date:"01-01", year:1898, text:"The five boroughs became one New York City.", href:"https://www.nyc.gov/site/records/historical-records/collections.page" },
-    { date:"02-02", year:1913, text:"Grand Central Terminal opened its doors.", href:"https://www.grandcentralterminal.com/history/" },
-    { date:"05-24", year:1883, text:"The Brooklyn Bridge opened to the public.", href:"https://www.nps.gov/places/brooklyn-bridge.htm" },
-    { date:"08-27", year:1776, text:"The Battle of Brooklyn was fought.", href:"https://www.nps.gov/gois/learn/historyculture/battle-of-brooklyn.htm" },
-    { date:"10-27", year:1904, text:"New York’s first subway line opened.", href:"https://new.mta.info/agency/new-york-city-transit/subway-bus-ridership-1900-2018" },
-    { date:"10-28", year:1886, text:"The Statue of Liberty was dedicated.", href:"https://www.nps.gov/stli/learn/historyculture/places_creating_statue.htm" },
-    { date:"11-13", year:1927, text:"The Holland Tunnel opened to traffic.", href:"https://www.panynj.gov/bridges-tunnels/en/holland-tunnel/history.html" },
-    { date:"12-31", year:1904, text:"Times Square held its first New Year celebration.", href:"https://www.timessquarenyc.org/times-square-new-years-eve/nye-history-times-square" },
-  ],
-  SF: [
-    { date:"01-30", year:1847, text:"Yerba Buena was renamed San Francisco.", href:"https://www.sfhistory.org/" },
-    { date:"04-18", year:1906, text:"The great San Francisco earthquake struck.", href:"https://earthquake.usgs.gov/earthquakes/events/1906calif/18april/" },
-    { date:"05-27", year:1937, text:"The Golden Gate Bridge opened to pedestrians.", href:"https://www.goldengate.org/bridge/history-research/moments-events/bridge-opening/" },
-    { date:"06-26", year:1945, text:"The United Nations Charter was signed here.", href:"https://www.un.org/en/about-us/history-of-the-un/san-francisco-conference" },
-    { date:"08-02", year:1873, text:"San Francisco’s first cable car began service.", href:"https://www.sfmta.com/getting-around/muni/cable-cars" },
-    { date:"08-27", year:1849, text:"A Gold Rush voyager entered the Golden Gate.", href:"https://www.nps.gov/safr/learn/historyculture/this-day-in-maritime-history-august.htm" },
-    { date:"10-17", year:1989, text:"The Loma Prieta earthquake reshaped the Bay.", href:"https://earthquake.usgs.gov/earthquakes/events/1989lomaprieta/" },
-    { date:"11-20", year:1969, text:"The occupation of Alcatraz Island began.", href:"https://www.nps.gov/alca/learn/historyculture/we-hold-the-rock.htm" },
-  ],
-  SPACE: [
-    { date:"01-31", year:1958, text:"Explorer 1 became America’s first satellite.", href:"https://science.nasa.gov/mission/explorer-1/" },
-    { date:"02-20", year:1962, text:"John Glenn orbited Earth aboard Friendship 7.", href:"https://www.nasa.gov/history/60-years-ago-john-glenn-the-first-american-to-orbit-the-earth-aboard-friendship-7/" },
-    { date:"04-12", year:1961, text:"Yuri Gagarin became the first human in space.", href:"https://www.nasa.gov/history/60-years-ago-yuri-gagarin-becomes-the-first-man-in-space/" },
-    { date:"05-05", year:1961, text:"Alan Shepard became the first American in space.", href:"https://www.nasa.gov/history/60-years-ago-alan-shepard-becomes-the-first-american-in-space/" },
-    { date:"07-20", year:1969, text:"Apollo 11 landed humans on the Moon.", href:"https://www.nasa.gov/mission/apollo-11/" },
-    { date:"08-27", year:1962, text:"Mariner 2 launched toward Venus.", href:"https://science.nasa.gov/mission/mariner-2/" },
-    { date:"10-04", year:1957, text:"Sputnik 1 opened the space age.", href:"https://www.nasa.gov/history/sputnik/sputorig.html" },
-    { date:"12-24", year:1968, text:"Apollo 8 witnessed the first Earthrise.", href:"https://www.nasa.gov/image-article/apollo-8-earthrise/" },
-  ],
-};
+type DailyFact = { year: number; text: string; href: string };
+const DAILY_FACTS = dailyFactsData as Record<City | "SPACE", Record<string, DailyFact>>;
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 const palettes: Record<string, Oklch[]> = {
   night: [[17,.055,258],[25,.09,260],[31,.09,278],[80,.04,250],[41,.12,270],[35,.11,292],[39,.05,255]],
@@ -93,8 +64,8 @@ function orbitTemperature(date:Date,city:City,altitudeKm=400) {
 }
 function dailyCardFact(context:City|"SPACE",date:Date) {
   const zone=context==="SPACE"?"UTC":CITIES[context].zone,p=zonedParts(date,zone),key=`${String(p.month).padStart(2,"0")}-${String(p.day).padStart(2,"0")}`;
-  const historical=DAILY_FACTS[context].find(f=>f.date===key);
-  if(historical)return {label:`On this day · ${historical.year}`,text:historical.text,href:historical.href};
+  const historical=DAILY_FACTS[context][key];
+  if(historical)return {label:`On ${p.day} ${MONTH_NAMES[p.month-1]} ${historical.year}`,text:historical.text,href:historical.href};
   if(context!=="SPACE"){
     const solar=solarState(date,context),minutes=Math.round((solar.sunset-solar.sunrise)*60),hours=Math.floor(minutes/60);
     return {label:"Today",text:`${hours}h ${String(minutes%60).padStart(2,"0")}m of daylight`,href:""};
