@@ -116,34 +116,7 @@ export default function Home() {
   }, []);
   useLayoutEffect(() => {
     const root = document.documentElement;
-    const storedMode=localStorage.getItem("environmentMode");
-    root.dataset.environment=storedMode==="sf"||storedMode==="space"?storedMode:"ny";
-    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let seen=false;
-    try{seen=sessionStorage.getItem("ben-intro-seen-v1")==="true"}catch{}
-    const skipIntro=seen||reduced||document.visibilityState!=="visible"||window.scrollY>4||Boolean(window.location.hash);
-    let firstFrame=0,secondFrame=0,introTimer=0;
-    const finishIntro=()=>{
-      window.clearTimeout(introTimer);
-      root.classList.add("intro-ready","intro-complete");
-      root.classList.remove("intro-pending");
-      window.removeEventListener("wheel",finishIntro);
-      window.removeEventListener("touchstart",finishIntro);
-      window.removeEventListener("pointerdown",finishIntro);
-      window.removeEventListener("keydown",finishIntro);
-    };
-    if(skipIntro){root.classList.add("intro-ready","intro-complete")}
-    else{
-      try{sessionStorage.setItem("ben-intro-seen-v1","true")}catch{}
-      root.classList.add("intro-pending");
-      firstFrame=window.requestAnimationFrame(()=>{secondFrame=window.requestAnimationFrame(()=>root.classList.add("intro-ready"))});
-      introTimer=window.setTimeout(finishIntro,1550);
-      window.addEventListener("wheel",finishIntro,{passive:true});
-      window.addEventListener("touchstart",finishIntro,{passive:true});
-      window.addEventListener("pointerdown",finishIntro,{passive:true});
-      window.addEventListener("keydown",finishIntro);
-    }
-    const targets = Array.from(document.querySelectorAll<HTMLElement>(".statement > *, .section-head, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
+    const targets = Array.from(document.querySelectorAll<HTMLElement>(".hero > *, .statement > *, .section-head, .research-row, .index-head, .index-row, .project, .socials > a, footer > *"));
     targets.forEach((target, index) => {
       target.classList.add("motion-item");
       if (target.matches(".research-row,.index-row,.project")) target.classList.add("motion-row");
@@ -154,21 +127,15 @@ export default function Home() {
       if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
     }), { rootMargin: "0px 0px -7%", threshold: .06 });
     targets.forEach(target => observer.observe(target));
-    return () => {
-      observer.disconnect();
-      window.cancelAnimationFrame(firstFrame);window.cancelAnimationFrame(secondFrame);window.clearTimeout(introTimer);
-      window.removeEventListener("wheel",finishIntro);window.removeEventListener("touchstart",finishIntro);window.removeEventListener("pointerdown",finishIntro);window.removeEventListener("keydown",finishIntro);
-      root.classList.remove("motion-ready","intro-pending","intro-ready","intro-complete");
-    };
+    return () => { observer.disconnect(); root.classList.remove("motion-ready"); };
   }, []);
   useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
   const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
-  useEffect(()=>{const root=document.documentElement;root.dataset.environment=mode;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
+  useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
 
   return <>
     <AtmosphereBackground atmosphere={atmosphere} />
     {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
-    <div className="intro-veil" aria-hidden="true" />
     <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
