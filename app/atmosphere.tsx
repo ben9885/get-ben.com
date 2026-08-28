@@ -153,8 +153,8 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
     </div>;
   };
   return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view">
-    <div className={`city-option${mode==="ny"?" has-card":""}`}><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><span className="city-glyph city-glyph-ny" aria-hidden />NY</button>{mode==="ny"&&details()}</div>
-    <div className={`city-option${mode==="sf"?" has-card":""}`}><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><span className="city-glyph city-glyph-sf" aria-hidden />SF</button>{mode==="sf"&&details()}</div>
-    <div className={`city-option${mode==="space"?" has-card":""}`}><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon />Space</button>{mode==="space"&&details(true)}</div>
+    <div className="city-option"><button onClick={()=>chooseCity("NY")} className={mode==="ny"?"selected":""} aria-pressed={mode==="ny"}><span className="city-glyph city-glyph-ny" aria-hidden />NY</button>{mode==="ny"&&details()}</div>
+    <div className="city-option"><button onClick={()=>chooseCity("SF")} className={mode==="sf"?"selected":""} aria-pressed={mode==="sf"}><span className="city-glyph city-glyph-sf" aria-hidden />SF</button>{mode==="sf"&&details()}</div>
+    <div className="city-option"><button className={`space-option ${mode==="space"?"selected":""}`} onClick={()=>onMode("space")} onPointerEnter={onPreloadSpace} onFocus={onPreloadSpace} aria-label="Space view" aria-pressed={mode==="space"}><TelescopeIcon />Space</button>{mode==="space"&&details(true)}</div>
   </div></div>;
 }

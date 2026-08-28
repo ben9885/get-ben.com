@@ -21,7 +21,6 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .environment { position:relative; font-size:13px; display:flex; align-items:center; white-space:nowrap; }
 .city-switch { display:flex; align-items:center; gap:clamp(12px,1.7vw,24px); }
 .city-option { position:relative; display:flex; }
-.city-option.has-card::after { content:""; position:absolute; z-index:3; top:100%; left:50%; width:1px; height:18px; background:color-mix(in srgb,var(--ink) 42%,transparent); pointer-events:none; }
 .city-switch button { appearance:none; min-height:38px; border:1px solid transparent; border-radius:999px; padding:8px 12px 8px 9px; background:transparent; display:flex; align-items:center; gap:7px; cursor:pointer; opacity:.62; font-weight:520; transition:opacity .18s ease,border-color .18s ease,transform .18s ease; }
 .city-switch button:hover { opacity:1; transform:translateY(-1px); }
 .city-switch button:focus-visible { opacity:1; outline:1px solid currentColor; outline-offset:2px; }
