@@ -20,17 +20,18 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .environment { position:relative; font-size:13px; display:flex; align-items:center; white-space:nowrap; }
 .city-switch { display:flex; align-items:center; gap:clamp(12px,1.7vw,24px); }
 .city-option { position:relative; display:flex; }
-.city-switch button { appearance:none; min-height:38px; border:1px solid transparent; border-radius:999px; padding:8px 12px 8px 9px; background:transparent; display:flex; align-items:center; gap:7px; cursor:pointer; opacity:.62; font-weight:520; transition:opacity .18s ease,border-color .18s ease,transform .18s ease; }
-.city-switch button:hover { opacity:1; transform:translateY(-1px); }
+.city-switch button { appearance:none; min-height:38px; border:1px solid transparent; border-radius:999px; padding:8px 12px 8px 9px; background:transparent; display:flex; align-items:center; gap:7px; cursor:pointer; opacity:.48; font-weight:520; transition:opacity .25s ease,background .3s ease,box-shadow .3s ease,transform .3s cubic-bezier(.16,1,.3,1); }
+.city-switch button:hover { opacity:.82; transform:translateY(-1px); }
 .city-switch button:focus-visible { opacity:1; outline:1px solid currentColor; outline-offset:2px; }
 .city-switch button:active { transform:translateY(1px) scale(.98); }
-.city-switch button.selected { opacity:1; border-color:transparent; font-weight:650; }
+.city-switch button.selected { opacity:1; border-color:transparent; background:color-mix(in srgb,var(--ink) 13%,transparent); box-shadow:0 10px 28px color-mix(in srgb,var(--ink) 12%,transparent); transform:translateY(-1px); font-weight:650; }
 .city-switch .space-option { min-height:38px; padding:8px 12px 8px 9px; justify-content:center; }
-.telescope-icon { width:24px; height:24px; display:block; fill:none; stroke:currentColor; stroke-width:2.35; stroke-linecap:round; stroke-linejoin:round; }
+.telescope-icon { width:24px; height:24px; display:block; fill:none; stroke:currentColor; stroke-width:2.35; stroke-linecap:round; stroke-linejoin:round; transition:transform .3s cubic-bezier(.16,1,.3,1); }
 .city-glyph { display:block; flex:0 0 auto; background:currentColor; -webkit-mask-position:center; mask-position:center; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-size:contain; mask-size:contain; transition:transform .35s cubic-bezier(.16,1,.3,1); }
 .city-glyph-sf { width:24px; height:17px; -webkit-mask-image:url("/city-icons/sf.svg"); mask-image:url("/city-icons/sf.svg"); }
 .city-glyph-ny { width:22px; height:21px; -webkit-mask-image:url("/city-icons/ny.svg"); mask-image:url("/city-icons/ny.svg"); }
 .city-switch button:hover .city-glyph { transform:scale(1.06); }
+.city-switch button.selected .city-glyph,.city-switch button.selected .telescope-icon { transform:scale(1.08); }
 .weather-tip { position:absolute; z-index:2; left:50%; top:calc(100% + 17px); width:260px; max-width:calc(100vw - 32px); padding:14px 15px 13px; display:flex; flex-direction:column; overflow:hidden; background:color-mix(in srgb,var(--nav-bg) 76%,white 24%); border:1px solid color-mix(in srgb,var(--ink) 38%,transparent); border-radius:12px; box-shadow:0 22px 54px rgba(5,20,55,.16),inset 0 1px rgba(255,255,255,.25); backdrop-filter:blur(18px) saturate(1.15); -webkit-backdrop-filter:blur(18px) saturate(1.15); font-size:11px; opacity:1; transform:translateX(-50%); pointer-events:auto; transition:opacity .18s ease,transform .18s ease,background .8s ease; }
 .city-option:first-child .weather-tip { left:0; transform:none; }
 .city-option:last-child .weather-tip { left:auto; right:0; transform:none; }
