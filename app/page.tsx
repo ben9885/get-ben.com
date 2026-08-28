@@ -70,7 +70,14 @@ function ExternalLink({ href, children, className = "" }: { href: string; childr
 }
 
 function Navigation({ active, citySwitcher }: { active: string; citySwitcher: React.ReactNode }) {
-  return <header className="nav-wrap"><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 16);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+  return <header className={`nav-wrap${scrolled ? " is-scrolled" : ""}`}><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
 }
 
 function ProjectRow({ item }: { item: Project }) {
