@@ -43,7 +43,7 @@ const investments = [
 const research = [
   { n: "01", title: "TASTE: Preference Dataset for Graphic Design", meta: "2026 · Paper · arXiv", stats: "", href: "https://arxiv.org/abs/2605.20731" },
   { n: "02", title: "The Human Creativity Benchmark", meta: "2026 · Paper · arXiv", stats: "", href: "https://arxiv.org/abs/2606.30561" },
-  { n: "03", title: "Contra Labs Research", meta: "Ongoing · Research", stats: "", href: "https://contra.com/labs" },
+  { n: "03", title: "Contra Labs Research", meta: "Ongoing · Research", stats: "", href: "https://contralabs.com/research" },
   { n: "04", title: "Ad Creative Design Dataset", meta: "Dataset · Hugging Face", stats: "85 downloads · 35 rows", href: "https://huggingface.co/datasets/contralabs/creative-ad-design-dataset" },
   { n: "05", title: "Descript Video-Editing Trajectories", meta: "Dataset · Hugging Face", stats: "286 downloads · 803 rows", href: "https://huggingface.co/datasets/contralabs/descript-video-editing-trajectories" },
   { n: "06", title: "Premiere Video-Editing Trajectories", meta: "Dataset · Hugging Face", stats: "686 downloads · 234 rows", href: "https://huggingface.co/datasets/contralabs/premiere-video-editing-trajectories" },
