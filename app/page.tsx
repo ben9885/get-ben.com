@@ -116,16 +116,7 @@ export default function Home() {
       if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); }
     }), { rootMargin: "0px 0px -7%", threshold: .06 });
     targets.forEach(target => observer.observe(target));
-    let progressFrame = 0;
-    const updateProgress = () => {
-      progressFrame = 0;
-      const available = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      root.style.setProperty("--page-progress", String(Math.min(1, Math.max(0, scrollY / available))));
-    };
-    const onScroll = () => { if (!progressFrame) progressFrame = requestAnimationFrame(updateProgress); };
-    const sizeObserver = new ResizeObserver(onScroll); sizeObserver.observe(document.body);
-    updateProgress(); addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onScroll, { passive: true });
-    return () => { observer.disconnect(); sizeObserver.disconnect(); removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); if (progressFrame) cancelAnimationFrame(progressFrame); root.classList.remove("motion-ready"); root.style.removeProperty("--page-progress"); };
+    return () => { observer.disconnect(); root.classList.remove("motion-ready"); };
   }, []);
   useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
   const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
