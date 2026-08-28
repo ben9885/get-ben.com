@@ -137,7 +137,8 @@ footer a { font-size:12px; }
 .motion-ready .motion-item.is-visible { opacity:1; transform:none; filter:none; clip-path:inset(0); }
 .motion-ready h1.motion-item { clip-path:inset(-18% -4% 6% -4%); }
 .motion-ready h1.motion-item.is-visible { clip-path:inset(-18% -4% -22% -4%); }
-.motion-ready .dek.motion-item,.motion-ready .dek.motion-item.is-visible { clip-path:none; }
+.motion-ready .dek.motion-item,.motion-ready .dek.motion-item.is-visible,
+.motion-ready .large-copy.motion-item,.motion-ready .large-copy.motion-item.is-visible { clip-path:none; }
 .motion-ready .motion-row.is-visible:nth-child(2n) { transition-delay:45ms; }
 .space-mode .motion-item.is-visible { text-shadow:0 0 28px rgba(130,177,255,.025); }
 @media (max-width:700px) {
