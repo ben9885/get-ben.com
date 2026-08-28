@@ -175,7 +175,7 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
     </div>;
     return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
       <div className="weather-card-body">
-        <span className="weather-live mono">Live · {location}</span>
+        <span className="weather-live mono"><i className="weather-live-dot" aria-hidden />Live · {location}</span>
         <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
         <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
       </div>
