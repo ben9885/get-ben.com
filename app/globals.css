@@ -2,7 +2,7 @@
 
 :root { --ink:#30354a; --line:rgba(48,53,74,.34); --nav-bg:oklch(51% .21 253 / .9); --pale:rgba(255,255,255,.18); --gutter:clamp(20px,4vw,64px); }
 * { box-sizing:border-box; }
-html { scroll-behavior:smooth; scroll-padding-top:92px; background:#1261ee; }
+html { scroll-behavior:smooth; scroll-padding-top:138px; background:#1261ee; }
 body { margin:0; min-height:100vh; background:transparent; color:var(--ink); font-family:"General Sans","Helvetica Neue",Arial,sans-serif; font-size:16px; letter-spacing:-.015em; transition:color .8s ease; }
 a { color:inherit; text-decoration:none; }
 button { color:inherit; font:inherit; }
@@ -19,6 +19,9 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .nav-links a:hover,.nav-links a.active { opacity:1; }
 .nav-links a.active::after { right:0; }
 .environment { position:relative; font-size:13px; display:flex; align-items:center; white-space:nowrap; }
+.environment.mode-ny { --ribbon-left:67%; --ribbon-right:20%; }
+.environment.mode-sf { --ribbon-left:76%; --ribbon-right:12%; }
+.environment.mode-space { --ribbon-left:85%; --ribbon-right:3%; }
 .city-switch { display:flex; align-items:center; gap:clamp(12px,1.7vw,24px); }
 .city-option { position:relative; display:flex; }
 .city-switch button { appearance:none; min-height:38px; border:1px solid transparent; border-radius:999px; padding:8px 12px 8px 9px; background:transparent; display:flex; align-items:center; gap:7px; cursor:pointer; opacity:.48; font-weight:520; transition:opacity .25s ease,background .3s ease,box-shadow .3s ease,transform .3s cubic-bezier(.16,1,.3,1); }
@@ -34,6 +37,22 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 .city-switch button:hover .city-glyph { transform:scale(1.06); }
 .city-switch button.selected .city-glyph,.city-switch button.selected .telescope-icon { transform:scale(1.08); }
 .weather-tip { position:absolute; z-index:2; left:50%; top:calc(100% + 17px); width:260px; max-width:calc(100vw - 32px); padding:14px 15px 13px; display:flex; flex-direction:column; overflow:hidden; background:color-mix(in srgb,var(--nav-bg) 76%,white 24%); border:1px solid color-mix(in srgb,var(--ink) 38%,transparent); border-radius:12px; box-shadow:0 22px 54px rgba(5,20,55,.16),inset 0 1px rgba(255,255,255,.25); backdrop-filter:blur(18px) saturate(1.15); -webkit-backdrop-filter:blur(18px) saturate(1.15); font-size:11px; opacity:1; transform:translateX(-50%); pointer-events:auto; transition:opacity .18s ease,transform .18s ease,background .8s ease; }
+.weather-card-body { display:flex; flex-direction:column; opacity:1; transition:opacity .18s ease,transform .35s cubic-bezier(.16,1,.3,1); }
+.weather-marquee { position:absolute; inset:0; display:flex; align-items:center; overflow:hidden; opacity:0; visibility:hidden; pointer-events:none; mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent); -webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent); transition:opacity .24s ease .28s,visibility 0s linear .52s; }
+.weather-marquee-track { display:flex; align-items:center; width:max-content; will-change:transform; }
+.weather-marquee-run { display:flex; align-items:center; gap:clamp(20px,2.2vw,38px); padding-right:clamp(52px,6vw,96px); white-space:nowrap; font-size:12px; line-height:1; }
+.weather-marquee-run strong { font-size:20px; letter-spacing:-.045em; font-weight:630; }
+.weather-marquee-run .mono { font-size:8px; opacity:.58; }
+.weather-marquee-live { opacity:.72!important; }
+.weather-marquee-run a { position:relative; transition:opacity .18s ease; }
+.weather-marquee-run a:hover { opacity:.62; }
+.weather-marquee-divider { opacity:.28; }
+.nav-wrap.has-marquee .weather-tip { position:fixed; z-index:5; inset:66px 0 auto!important; width:100vw; max-width:none; height:46px; padding:0; border:0; border-radius:0; background:rgb(255 255 255 / 7%); box-shadow:inset 0 1px rgb(255 255 255 / 8%),inset 0 -1px color-mix(in srgb,var(--ink) 10%,transparent); transform:none!important; backdrop-filter:blur(24px) saturate(.98) brightness(1.01); -webkit-backdrop-filter:blur(24px) saturate(.98) brightness(1.01); animation:weather-ribbon-in .72s cubic-bezier(.16,1,.3,1) both; }
+.space-mode .nav-wrap.has-marquee .weather-tip { background:rgb(2 5 13 / 14%); box-shadow:inset 0 1px rgb(255 255 255 / 7%),inset 0 -1px rgb(255 255 255 / 6%); }
+.nav-wrap.has-marquee .weather-card-body { opacity:0; visibility:hidden; transform:translateY(-6px); pointer-events:none; }
+.nav-wrap.has-marquee .weather-marquee { opacity:1; visibility:visible; pointer-events:auto; transition-delay:.28s,0s; }
+.nav-wrap.has-marquee .weather-marquee-track { animation:weather-marquee 34s linear .5s infinite; }
+.weather-marquee:hover .weather-marquee-track,.weather-marquee:focus-within .weather-marquee-track { animation-play-state:paused; }
 .city-option:first-child .weather-tip { left:0; transform:none; }
 .city-option:last-child .weather-tip { left:auto; right:0; transform:none; }
 .weather-live { font-size:7.5px; line-height:1.2; opacity:.62; }
@@ -68,8 +87,10 @@ nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px;
 main,footer { position:relative; z-index:1; }
 @keyframes atmosphere-in { from{opacity:0} to{opacity:1} }
 @keyframes atmosphere-out { from{opacity:1} to{opacity:0} }
+@keyframes weather-ribbon-in { from{opacity:.6;clip-path:inset(0 var(--ribbon-right) 0 var(--ribbon-left) round 12px)} to{opacity:1;clip-path:inset(0 round 0)} }
+@keyframes weather-marquee { to{transform:translate3d(-50%,0,0)} }
 main,footer { max-width:1120px; margin:auto; padding-left:var(--gutter); padding-right:var(--gutter); }
-section { scroll-margin-top:92px; padding:clamp(100px,14vw,190px) 0 0; }
+section { scroll-margin-top:138px; padding:clamp(100px,14vw,190px) 0 0; }
 .hero { padding-top:clamp(80px,10vw,125px); min-height:72vh; display:flex; flex-direction:column; justify-content:flex-start; }
 .eyebrow,.section-label { margin:0 0 25px; }
 .hero-topline { margin-bottom:25px; }
@@ -185,4 +206,4 @@ footer a { font-size:12px; }
   footer a { grid-column:1/-1; padding-bottom:30px; }
 }
 @media (max-width:700px) { .atmosphere-layer { inset:-4vmax; background-size:auto,140vw 100vh,160vw 60vh,auto; } }
-@media (prefers-reduced-motion:reduce) { html{scroll-behavior:auto} *,*::before,*::after{animation:none!important;transition:none!important} .atmosphere-layer.is-current{opacity:1}.atmosphere-layer.is-outgoing{opacity:0} .motion-ready .motion-item{opacity:1;transform:none;filter:none;clip-path:none} }
+@media (prefers-reduced-motion:reduce) { html{scroll-behavior:auto} *,*::before,*::after{animation:none!important;transition:none!important} .atmosphere-layer.is-current{opacity:1}.atmosphere-layer.is-outgoing{opacity:0} .motion-ready .motion-item{opacity:1;transform:none;filter:none;clip-path:none} .weather-marquee{overflow-x:auto;mask-image:none;-webkit-mask-image:none}.weather-marquee-run[aria-hidden="true"]{display:none} }

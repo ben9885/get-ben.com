@@ -146,10 +146,25 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
     const metric=space?`≈${orbit.temperature}°F`:weather?`${Math.round(weather.temperature)}°`:"—°";
     const condition=space?orbit.state:weather?weatherLabel(weather.weatherCode):"Atmosphere syncing";
     const location=space?"Near-earth orbit":c.name;
+    const marqueeRun=(duplicate=false)=><div className="weather-marquee-run" aria-hidden={duplicate||undefined}>
+      <span className="weather-marquee-live mono">Live · {location}</span>
+      <strong>{metric}</strong>
+      <span>{condition}</span>
+      <span>{time}{space?" UTC":""}</span>
+      <span className="weather-marquee-divider" aria-hidden>✦</span>
+      <span className="mono">{fact.label}</span>
+      {fact.href&&!duplicate?<a href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span>{fact.text}{fact.href&&<span aria-hidden> ↗</span>}</span>}
+      <span className="weather-marquee-divider" aria-hidden>✦</span>
+    </div>;
     return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
-      <span className="weather-live mono">Live · {location}</span>
-      <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
-      <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
+      <div className="weather-card-body">
+        <span className="weather-live mono">Live · {location}</span>
+        <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
+        <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
+      </div>
+      <div className="weather-marquee" aria-label={`Live ${location}: ${metric}, ${condition}, ${time}${space?" UTC":""}. ${fact.label}: ${fact.text}`}>
+        <div className="weather-marquee-track">{marqueeRun()}{marqueeRun(true)}</div>
+      </div>
     </div>;
   };
   return <div className={`environment mode-${mode}`}><div className="city-switch" role="group" aria-label="Environmental view">
