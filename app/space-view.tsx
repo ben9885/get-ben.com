@@ -5,10 +5,10 @@ import * as THREE from "three";
 
 const SAFE_SELECTOR = "a,button,input,textarea,select,iframe,video,audio,[data-interactive]";
 const SECTION_IDS = ["about", "contra", "research", "investments", "projects", "contact"];
-const SIGNATURE_STARS = 48;
-const LINE_COUNT = 32;
+const SIGNATURE_STARS = 28;
+const LINE_COUNT = 12;
 
-type Burst = { at: number; point: THREE.Vector3; section: number; constellation?: boolean };
+type Burst = { at: number; point: THREE.Vector3 };
 type SpaceInteraction = { type: "project"; x: number; y: number; open: boolean };
 
 function random(seed: number) {
@@ -22,17 +22,17 @@ function signaturePoint(section: number, index: number, rnd: () => number) {
     return [2.25 + t * 4.5, -2.5 + t * 5.2 + Math.sin(t * Math.PI * 3) * .42, -2.8 - rnd() * 1.5];
   }
   if (section === 1) {
-    const arm = index % 4, step = Math.floor(index / 4) / 11, angle = Math.PI * .25 + arm * Math.PI * .5;
-    const radius = .08 + Math.pow(step, .72) * 2.25;
+    const arm = index % 4, step = Math.floor(index / 4) / 6, angle = Math.PI * .25 + arm * Math.PI * .5;
+    const radius = .08 + Math.pow(step, .72) * 1.72;
     return [3.15 + Math.cos(angle) * radius, .55 + Math.sin(angle) * radius, -2.55 - rnd() * 1.1];
   }
   if (section === 2) {
-    const column = index % 8, row = Math.floor(index / 8);
-    return [1.45 + column * .7, -1.7 + row * .68 + (column % 2) * .08, -2.7 - rnd() * 1.15];
+    const column = index % 7, row = Math.floor(index / 7);
+    return [1.85 + column * .68, -1.18 + row * .7 + (column % 2) * .06, -2.7 - rnd() * .8];
   }
   if (section === 3) {
-    const cluster = index % 3, step = Math.floor(index / 3), centers = [[2.2, 1.5], [4.55, .1], [2.45, -1.7]];
-    const angle = step / 16 * Math.PI * 2 + cluster * .55, radius = .45 + (step % 3) * .22;
+    const cluster = index % 3, step = Math.floor(index / 3), centers = [[2.35, 1.35], [4.45, .1], [2.55, -1.45]];
+    const angle = step / 10 * Math.PI * 2 + cluster * .55, radius = .38 + (step % 3) * .18;
     return [centers[cluster][0] + Math.cos(angle) * radius, centers[cluster][1] + Math.sin(angle) * radius * .68, -2.7 - cluster * .48 - rnd() * .5];
   }
   if (section === 4) {
@@ -46,27 +46,22 @@ function signaturePoint(section: number, index: number, rnd: () => number) {
 }
 
 function makeComposition(count: number, section: number) {
-  const rnd = random(4109 + section * 997), result = new Float32Array(count * 3);
-  const density = [.64, 1.05, .88, .82, 1.08, .66][section] ?? 1;
+  const rnd = random(4109 + section * 997), ambient = random(9127), result = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     if (i < SIGNATURE_STARS) {
       result.set(signaturePoint(section, i, rnd), i * 3);
       continue;
     }
-    const layer = i / count < .08 ? 0 : i / count < .34 ? 1 : 2;
-    let x = (rnd() * 2 - 1) * (6.7 + layer * 1.8), y = (rnd() * 2 - 1) * (4.1 + layer * 1.1);
-    const cluster = rnd() < .32 * density;
+    const layer = i / count < .06 ? 0 : i / count < .3 ? 1 : 2;
+    let x = (ambient() * 2 - 1) * (6.8 + layer * 1.9), y = (ambient() * 2 - 1) * (4.2 + layer * 1.15);
+    const cluster = ambient() < .12;
     if (cluster) {
-      const angle = rnd() * Math.PI * 2, radius = Math.pow(rnd(), 1.8) * (1.25 + section * .08);
-      const centerX = section % 2 ? 2.9 : -3.1, centerY = section === 2 ? -1.7 : 1.55;
+      const angle = ambient() * Math.PI * 2, radius = Math.pow(ambient(), 1.8) * 1.3;
+      const centerX = ambient() < .5 ? 3.2 : -3.5, centerY = ambient() < .5 ? 1.7 : -1.8;
       x = centerX + Math.cos(angle) * radius; y = centerY + Math.sin(angle) * radius;
     }
-    if (section === 2 && rnd() < .17) { x = Math.round(x * 1.7) / 1.7; y = Math.round(y * 1.7) / 1.7; }
-    if (section === 3 && rnd() < .22) { const a = rnd() * Math.PI * 2, r = 2.2 + rnd() * 1.4; x = 2.8 + Math.cos(a) * r; y = .2 + Math.sin(a) * r * .55; }
-    if (section === 4 && rnd() < .2) y = x * .28 + (rnd() * 2 - 1) * .38;
-    if (section === 5 && rnd() < .2) { const a = rnd() * Math.PI * 2, r = 2.4 + rnd() * .7; x = 3.1 + Math.cos(a) * r; y = .1 + Math.sin(a) * r; }
-    if (x < 1.7 && x > -5.7 && y > -.9 && y < 3.25 && rnd() < .7) x += x > -1.7 ? 3.1 : -2.2;
-    result.set([x, y, -1.5 - layer * 3.2 - rnd() * 3.2], i * 3);
+    if (x < 1.8 && x > -5.8 && y > -.95 && y < 3.3 && ambient() < .78) x += x > -1.7 ? 3.2 : -2.3;
+    result.set([x, y, -1.8 - layer * 3.3 - ambient() * 3.1], i * 3);
   }
   return result;
 }
@@ -74,18 +69,12 @@ function makeComposition(count: number, section: number) {
 function makeEdges(section: number) {
   const edges: [number, number][] = [];
   if (section === 2) {
-    for (let row = 0; row < 4; row++) for (let col = 0; col < 7; col++) edges.push([row * 8 + col, row * 8 + col + 1]);
-    for (let col = 0; col < 4; col++) edges.push([col, col + 8]);
-  } else if (section === 3) {
-    for (let i = 0; i < LINE_COUNT; i++) edges.push([i % 3 + Math.floor(i / 3) * 3, i % 3 + ((Math.floor(i / 3) + 1) % 16) * 3]);
-  } else if (section === 4) {
-    for (let i = 0; i < LINE_COUNT; i++) edges.push([i, (i + 1) % SIGNATURE_STARS]);
+    for (let col = 0; col < 6; col++) edges.push([col, col + 1]);
+    for (let col = 0; col < 6; col++) edges.push([col, col + 7]);
   } else if (section === 1) {
     for (let i = 0; i < LINE_COUNT; i++) edges.push([i, (i + 4) % SIGNATURE_STARS]);
-  } else if (section === 5) {
-    for (let i = 0; i < LINE_COUNT; i++) { const start = Math.floor(i * SIGNATURE_STARS / LINE_COUNT); edges.push([start, (start + 1) % SIGNATURE_STARS]); }
   } else {
-    for (let i = 0; i < LINE_COUNT; i++) edges.push([i, (i + 1) % SIGNATURE_STARS]);
+    for (let i = 0; i < LINE_COUNT; i++) { const start = Math.floor(i * SIGNATURE_STARS / LINE_COUNT); edges.push([start, (start + 1) % SIGNATURE_STARS]); }
   }
   while (edges.length < LINE_COUNT) edges.push([edges.length % SIGNATURE_STARS, (edges.length + 1) % SIGNATURE_STARS]);
   return edges.slice(0, LINE_COUNT);
@@ -108,16 +97,16 @@ export default function SpaceView({ active }: { active: boolean }) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.2 : 1.5)); renderer.setSize(innerWidth, innerHeight); renderer.setClearColor(0x000000, 0);
     host.appendChild(renderer.domElement);
 
-    const count = mobile ? 1300 : 3600, compositions = SECTION_IDS.map((_, i) => makeComposition(count, i)), edges = SECTION_IDS.map((_, i) => makeEdges(i));
+    const count = mobile ? 650 : 1400, compositions = SECTION_IDS.map((_, i) => makeComposition(count, i)), edges = SECTION_IDS.map((_, i) => makeEdges(i));
     const sizes = new Float32Array(count), colors = new Float32Array(count * 3), depths = new Float32Array(count), seeds = new Float32Array(count);
     const rnd = random(7181);
     for (let i = 0; i < count; i++) {
-      const layer = i / count < .08 ? 0 : i / count < .34 ? 1 : 2;
-      sizes[i] = layer === 0 ? 2.3 + rnd() * 2.3 : layer === 1 ? 1.35 + rnd() * 1.35 : .62 + rnd() * .9;
-      if (i < SIGNATURE_STARS) sizes[i] *= 1.15;
-      if (rnd() < .035) sizes[i] *= 1.65;
+      const layer = i / count < .06 ? 0 : i / count < .3 ? 1 : 2;
+      sizes[i] = layer === 0 ? 2.05 + rnd() * 1.75 : layer === 1 ? 1.18 + rnd() * 1.05 : .58 + rnd() * .7;
+      if (i < SIGNATURE_STARS) sizes[i] *= 1.08;
+      if (rnd() < .008) sizes[i] *= 1.45;
       depths[i] = layer; seeds[i] = rnd();
-      const color = new THREE.Color().setHSL(.56 + rnd() * .12, .1 + rnd() * .3, .82 + rnd() * .17);
+      const color = new THREE.Color().setHSL(.59 + rnd() * .045, .025 + rnd() * .08, .8 + rnd() * .14);
       colors.set([color.r, color.g, color.b], i * 3);
     }
     const starsGeo = new THREE.BufferGeometry();
@@ -136,70 +125,65 @@ export default function SpaceView({ active }: { active: boolean }) {
         clickPoint: { value: new THREE.Vector2(99, 99) }, pulse: { value: 0 }, opacity: { value: 0 }
       },
       transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending,
-      vertexShader: `attribute vec3 targetPosition;attribute float size;attribute float depthLayer;attribute float seed;varying vec3 vColor;varying float vSparkle;uniform float morph;uniform float time;uniform vec2 pointer;uniform vec2 pointerPoint;uniform float hoverActive;uniform float scrollForce;uniform vec2 gravityPoint;uniform float gravityStrength;uniform vec2 elementPoint;uniform float elementHover;uniform vec2 clickPoint;uniform float pulse;void main(){vColor=color;vSparkle=clamp((size-2.)*.35,0.,1.);float eased=morph*morph*(3.-2.*morph);vec3 p=mix(position,targetPosition,eased);float factor=depthLayer<.5?1.:depthLayer<1.5?.42:.14;p.xy+=pointer*factor;p.z+=scrollForce*factor*1.45;p.x+=scrollForce*factor*.055;vec2 gravity=gravityPoint-p.xy;float gravityInfluence=smoothstep(5.4,.35,length(gravity))*gravityStrength;p.xy+=gravity*gravityInfluence*.017*factor;vec2 hoverDelta=p.xy-pointerPoint;float hoverInfluence=smoothstep(1.45,0.,length(hoverDelta))*hoverActive;p.xy+=normalize(hoverDelta+.0001)*hoverInfluence*.095*factor;vec2 elementDelta=p.xy-elementPoint;float elementInfluence=smoothstep(2.25,.18,length(elementDelta))*elementHover;p.xy+=vec2(-elementDelta.y,elementDelta.x)*elementInfluence*.026*factor;p.xy-=normalize(elementDelta+.0001)*elementInfluence*.018*factor;float dist=distance(p.xy,clickPoint);float influence=smoothstep(2.35,0.,dist);float compression=pulse<.18?-(pulse/.18):sin((pulse-.18)/.82*3.14159);float wave=exp(-pow((dist-pulse*3.2)*4.5,2.))*sin(pulse*18.8496);p.xy+=normalize(p.xy-clickPoint+.0001)*influence*compression*.27;p.z+=wave*.55*(1.-pulse);p.z+=sin(time*.7+seed*18.)*.012*factor;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(198./-mv.z)*(1.+abs(scrollForce)*factor*.05+wave*.22);gl_Position=projectionMatrix*mv;}`,
-      fragmentShader: `varying vec3 vColor;varying float vSparkle;uniform float opacity;void main(){vec2 q=gl_PointCoord-.5;float d=length(q);float core=smoothstep(.145,.015,d);float halo=smoothstep(.5,.08,d)*.24;float cross=(smoothstep(.035,0.,abs(q.x))*smoothstep(.4,.08,abs(q.y))+smoothstep(.035,0.,abs(q.y))*smoothstep(.4,.08,abs(q.x)))*vSparkle*.2;float a=(core+halo+cross)*opacity;vec3 sharp=mix(vColor,vec3(1.),core*.72);gl_FragColor=vec4(sharp,a);}`
+      vertexShader: `attribute vec3 targetPosition;attribute float size;attribute float depthLayer;attribute float seed;varying vec3 vColor;varying float vSparkle;uniform float morph;uniform float time;uniform vec2 pointer;uniform vec2 pointerPoint;uniform float hoverActive;uniform float scrollForce;uniform vec2 gravityPoint;uniform float gravityStrength;uniform vec2 elementPoint;uniform float elementHover;uniform vec2 clickPoint;uniform float pulse;void main(){vColor=color;vSparkle=clamp((size-2.65)*.45,0.,1.);float eased=morph*morph*(3.-2.*morph);vec3 p=mix(position,targetPosition,eased);float factor=depthLayer<.5?.46:depthLayer<1.5?.24:.1;p.xy+=pointer*factor;p.z+=scrollForce*factor*.45;vec2 gravity=gravityPoint-p.xy;float gravityInfluence=smoothstep(4.2,.4,length(gravity))*gravityStrength;p.xy+=gravity*gravityInfluence*.008*factor;vec2 hoverDelta=p.xy-pointerPoint;float hoverInfluence=smoothstep(.78,0.,length(hoverDelta))*hoverActive;p.xy+=normalize(hoverDelta+.0001)*hoverInfluence*.034*factor;vec2 elementDelta=p.xy-elementPoint;float elementInfluence=smoothstep(1.35,.18,length(elementDelta))*elementHover;p.xy+=vec2(-elementDelta.y,elementDelta.x)*elementInfluence*.011*factor;float dist=distance(p.xy,clickPoint);float influence=smoothstep(1.45,0.,dist);float compression=pulse<.18?-(pulse/.18):sin((pulse-.18)/.82*3.14159);float wave=exp(-pow((dist-pulse*2.15)*6.,2.))*sin(pulse*12.5664);p.xy+=normalize(p.xy-clickPoint+.0001)*influence*compression*.115;p.z+=wave*.22*(1.-pulse);p.z+=sin(time*.42+seed*18.)*.004*factor;vec4 mv=modelViewMatrix*vec4(p,1.);gl_PointSize=size*(198./-mv.z)*(1.+wave*.08);gl_Position=projectionMatrix*mv;}`,
+      fragmentShader: `varying vec3 vColor;varying float vSparkle;uniform float opacity;void main(){vec2 q=gl_PointCoord-.5;float d=length(q);float core=smoothstep(.135,.018,d);float halo=smoothstep(.5,.09,d)*.12;float cross=(smoothstep(.028,0.,abs(q.x))*smoothstep(.34,.08,abs(q.y))+smoothstep(.028,0.,abs(q.y))*smoothstep(.34,.08,abs(q.x)))*vSparkle*.12;float a=(core+halo+cross)*opacity;vec3 sharp=mix(vColor,vec3(1.),core*.58);gl_FragColor=vec4(sharp,a);}`
     });
     scene.add(new THREE.Points(starsGeo, starMaterial));
 
     const linePositions = new Float32Array(LINE_COUNT * 6), lineGeo = new THREE.BufferGeometry();
     lineGeo.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xb9d8ff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xc9dcf3, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
     const constellationLines = new THREE.LineSegments(lineGeo, lineMaterial); constellationLines.renderOrder = -1; scene.add(constellationLines);
 
-    const maxTemp = mobile ? 420 : 920, tempPositions = new Float32Array(maxTemp * 3), tempTargets = new Float32Array(maxTemp * 3), tempColors = new Float32Array(maxTemp * 3), tempSizes = new Float32Array(maxTemp), tempKind = new Uint8Array(maxTemp);
+    const maxTemp = mobile ? 120 : 240, tempPositions = new Float32Array(maxTemp * 3), tempTargets = new Float32Array(maxTemp * 3), tempColors = new Float32Array(maxTemp * 3), tempSizes = new Float32Array(maxTemp), tempKind = new Uint8Array(maxTemp);
     const velocity = Array.from({ length: maxTemp }, () => new THREE.Vector3()), age = new Float32Array(maxTemp), life = new Float32Array(maxTemp);
     const tempGeo = new THREE.BufferGeometry(); tempGeo.setAttribute("position", new THREE.BufferAttribute(tempPositions, 3)); tempGeo.setAttribute("color", new THREE.BufferAttribute(tempColors, 3)); tempGeo.setAttribute("size", new THREE.BufferAttribute(tempSizes, 1));
-    const tempMaterial = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending, vertexShader: `attribute float size;varying vec3 vColor;varying float vSharp;void main(){vColor=color;vSharp=clamp(size*.2,0.,1.);vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(190./-mv.z);gl_Position=projectionMatrix*mv;}`, fragmentShader: `varying vec3 vColor;varying float vSharp;void main(){vec2 q=gl_PointCoord-.5;float d=length(q);float core=smoothstep(.14,.01,d);float halo=smoothstep(.5,.07,d)*.28;float cross=(smoothstep(.028,0.,abs(q.x))*smoothstep(.38,.08,abs(q.y))+smoothstep(.028,0.,abs(q.y))*smoothstep(.38,.08,abs(q.x)))*vSharp*.22;gl_FragColor=vec4(mix(vColor,vec3(1.),core*.75),core+halo+cross);}` });
+    const tempMaterial = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, vertexColors: true, blending: THREE.AdditiveBlending, vertexShader: `attribute float size;varying vec3 vColor;varying float vSharp;void main(){vColor=color;vSharp=clamp(size*.18,0.,1.);vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=size*(190./-mv.z);gl_Position=projectionMatrix*mv;}`, fragmentShader: `varying vec3 vColor;varying float vSharp;void main(){vec2 q=gl_PointCoord-.5;float d=length(q);float core=smoothstep(.13,.015,d);float halo=smoothstep(.5,.09,d)*.15;float cross=(smoothstep(.026,0.,abs(q.x))*smoothstep(.32,.08,abs(q.y))+smoothstep(.026,0.,abs(q.y))*smoothstep(.32,.08,abs(q.x)))*vSharp*.1;gl_FragColor=vec4(mix(vColor,vec3(1.),core*.58),core+halo+cross);}` });
     scene.add(new THREE.Points(tempGeo, tempMaterial));
     let cursor = 0;
-    const paintTemp = (i: number, size: number, duration: number, hue = .61) => {
+    const paintTemp = (i: number, size: number, duration: number) => {
       age[i] = 0; life[i] = duration; tempSizes[i] = size;
-      const color = new THREE.Color().setHSL(hue + Math.random() * .08, .28 + Math.random() * .3, .78 + Math.random() * .18);
+      const color = new THREE.Color().setHSL(.6 + Math.random() * .035, .03 + Math.random() * .08, .82 + Math.random() * .12);
       tempColors.set([color.r, color.g, color.b], i * 3);
     };
-    const emit = (origin: THREE.Vector3, amount: number, trail = false, inherited = new THREE.Vector3()) => {
+    const emit = (origin: THREE.Vector3, amount: number) => {
       for (let n = 0; n < amount; n++) {
-        const i = cursor++ % maxTemp, angle = Math.random() * Math.PI * 2, z = Math.random() * 2 - 1, radial = Math.sqrt(1 - z * z), speed = trail ? .07 + Math.random() * .16 : .22 + Math.random() * .55;
+        const i = cursor++ % maxTemp, angle = Math.random() * Math.PI * 2, z = (Math.random() * 2 - 1) * .4, radial = Math.sqrt(1 - z * z), speed = .12 + Math.random() * .24;
         tempPositions.set([origin.x, origin.y, origin.z], i * 3); tempKind[i] = 0;
-        velocity[i].set(Math.cos(angle) * radial, Math.sin(angle) * radial, z).multiplyScalar(speed).addScaledVector(inherited, .22);
-        paintTemp(i, trail ? 1 + Math.random() * 1.5 : 1.4 + Math.random() * 2.8, trail ? .4 + Math.random() * .55 : .8 + Math.random());
+        velocity[i].set(Math.cos(angle) * radial, Math.sin(angle) * radial, z).multiplyScalar(speed);
+        paintTemp(i, 1 + Math.random() * 1.8, .55 + Math.random() * .3);
       }
     };
     const emitCore = (origin: THREE.Vector3) => {
       const i = cursor++ % maxTemp; tempPositions.set([origin.x, origin.y, origin.z], i * 3); tempKind[i] = 0;
-      velocity[i].set(0, 0, .025); paintTemp(i, mobile ? 9 : 13, reduced ? .32 : .46, .12); tempColors.set([1, .98, .94], i * 3);
+      velocity[i].set(0, 0, .018); paintTemp(i, mobile ? 6.5 : 9, reduced ? .24 : .34); tempColors.set([1, .99, .96], i * 3);
     };
     const emitTargetShape = (origin: THREE.Vector3, amount: number, pointAt: (n: number, amount: number) => [number, number], duration: number) => {
       for (let n = 0; n < amount; n++) {
         const i = cursor++ % maxTemp, target = pointAt(n, amount);
         tempPositions.set([origin.x + (Math.random() - .5) * .08, origin.y + (Math.random() - .5) * .08, origin.z + (Math.random() - .5) * .08], i * 3);
         tempTargets.set([origin.x + target[0], origin.y + target[1], origin.z - .15 + Math.sin(n * 1.7) * .08], i * 3);
-        tempKind[i] = 1; velocity[i].set(0, 0, 0); paintTemp(i, 1.2 + Math.random() * 2.2, duration + Math.random() * .35);
+        tempKind[i] = 1; velocity[i].set(0, 0, 0); paintTemp(i, 1 + Math.random() * 1.5, duration + Math.random() * .18);
       }
     };
-    const emitConstellation = (origin: THREE.Vector3, section: number) => {
-      const amount = mobile ? 24 : 42;
-      emitTargetShape(origin, amount, (n, total) => {
-        const t = n / total;
-        if (section === 1) { const arm = n % 4, step = Math.floor(n / 4) / Math.max(1, Math.floor(total / 4) - 1), a = Math.PI * .25 + arm * Math.PI * .5, r = .08 + step * .8; return [Math.cos(a) * r, Math.sin(a) * r]; }
-        if (section === 2) return [((n % 7) - 3) * .2, (Math.floor(n / 7) - 2.5) * .18];
-        if (section === 3) { const group = n % 3, a = Math.floor(n / 3) / Math.ceil(total / 3) * Math.PI * 2; return [(group - 1) * .45 + Math.cos(a) * .22, (group - 1) * -.12 + Math.sin(a) * .22]; }
-        if (section === 4) { const loop = t * 4, side = Math.floor(loop), u = loop - side; return [side === 0 ? -.72 + u * 1.44 : side === 1 ? .72 : side === 2 ? .72 - u * 1.44 : -.72, side === 0 ? .41 : side === 1 ? .41 - u * .82 : side === 2 ? -.41 : -.41 + u * .82]; }
-        const a = t * Math.PI * 2; return [Math.cos(a) * .65, Math.sin(a) * .65];
-      }, 2.25);
-    };
-    const emitProjectFrame = (origin: THREE.Vector3, open: boolean) => emitTargetShape(origin, mobile ? 34 : 64, (n, total) => {
-      const loop = n / total * 4, side = Math.floor(loop), u = loop - side, width = open ? 1.45 : .95, height = width * .5625;
+    const emitProjectFrame = (origin: THREE.Vector3, open: boolean) => emitTargetShape(origin, mobile ? 18 : 24, (n, total) => {
+      const loop = n / total * 4, side = Math.floor(loop), u = loop - side, width = open ? 1.05 : .78, height = width * .5625;
       return [side === 0 ? -width + u * width * 2 : side === 1 ? width : side === 2 ? width - u * width * 2 : -width, side === 0 ? height : side === 1 ? height - u * height * 2 : side === 2 ? -height : -height + u * height * 2];
-    }, open ? 1.65 : 1.1);
+    }, open ? .95 : .7);
+    const emitClickConstellation = (origin: THREE.Vector3) => emitTargetShape(origin, mobile ? 6 : 9, (n, total) => {
+      const edge = Math.floor(n / (total / 3)), u = (n % (total / 3)) / Math.max(1, total / 3 - 1);
+      const points: [number, number][] = [[0, .42], [-.45, -.3], [.52, -.2]];
+      const a = points[edge], b = points[(edge + 1) % 3];
+      return [THREE.MathUtils.lerp(a[0], b[0], u), THREE.MathUtils.lerp(a[1], b[1], u)];
+    }, .72);
     const pendingBursts: Burst[] = [];
 
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), ray = new THREE.Raycaster(), pointerNdc = new THREE.Vector2();
     const worldPoint = (x: number, y: number) => { pointerNdc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(pointerNdc, camera); const point = new THREE.Vector3(); ray.ray.intersectPlane(plane, point); return point; };
-    let pair = 0, pointerTargetX = 0, pointerTargetY = 0, down = false, dragged = false, downX = 0, downY = 0, lastX = 0, lastY = 0, lastTrail = 0, lastHover = 0, lastHoverX = 0, lastHoverY = 0, hoveredElement: Element | null = null;
+    let pair = 0, pointerTargetX = 0, pointerTargetY = 0, down = false, dragged = false, downX = 0, downY = 0, lastClick = 0, hoveredElement: Element | null = null;
     const safe = (event: PointerEvent) => (event.target as Element)?.closest?.(SAFE_SELECTOR);
     const onPointerMove = (event: PointerEvent) => {
-      pointerTargetX = (event.clientX / innerWidth - .5) * .12; pointerTargetY = -(event.clientY / innerHeight - .5) * .08;
+      pointerTargetX = (event.clientX / innerWidth - .5) * .04; pointerTargetY = -(event.clientY / innerHeight - .5) * .025;
       if (!activeRef.current) return;
       const interactive = (event.target as Element)?.closest?.("[data-space-effect]");
       if (safe(event)) {
@@ -211,23 +195,18 @@ export default function SpaceView({ active }: { active: boolean }) {
         return;
       }
       if (hoveredElement) { starMaterial.uniforms.elementHover.value = 0; hoveredElement = null; }
-      const point = worldPoint(event.clientX, event.clientY), now = performance.now();
+      const point = worldPoint(event.clientX, event.clientY);
       starMaterial.uniforms.pointerPoint.value.set(point.x, point.y); starMaterial.uniforms.hoverActive.value = reduced ? 0 : 1;
-      if (!down) {
-        const dx = event.clientX - lastHoverX, dy = event.clientY - lastHoverY, movement = Math.hypot(dx, dy);
-        if (!reduced && !mobile && lastHoverX && movement > 2 && now - lastHover > 70) { emit(point, movement > 24 ? 4 : 2, true, new THREE.Vector3(dx, -dy, 0).multiplyScalar(.005)); lastHover = now; }
-        lastHoverX = event.clientX; lastHoverY = event.clientY; return;
-      }
-      const dx = event.clientX - lastX, dy = event.clientY - lastY; if (Math.hypot(event.clientX - downX, event.clientY - downY) > 6) dragged = true;
-      if (dragged && now - lastTrail > 48 && (!mobile || event.pointerType === "mouse")) { emit(point, 6, true, new THREE.Vector3(dx, -dy, 0).multiplyScalar(.008)); lastTrail = now; }
-      lastX = event.clientX; lastY = event.clientY;
+      if (down && Math.hypot(event.clientX - downX, event.clientY - downY) > 6) dragged = true;
     };
-    const onPointerDown = (event: PointerEvent) => { if (!activeRef.current || safe(event)) return; down = true; dragged = false; downX = lastX = event.clientX; downY = lastY = event.clientY; };
+    const onPointerDown = (event: PointerEvent) => { if (!activeRef.current || safe(event)) return; down = true; dragged = false; downX = event.clientX; downY = event.clientY; };
     const onPointerUp = (event: PointerEvent) => {
       if (!activeRef.current || !down || safe(event)) { down = false; return; }
-      if (!dragged) {
+      const now = performance.now();
+      if (!dragged && now - lastClick > 600) {
+        lastClick = now;
         const point = worldPoint(event.clientX, event.clientY); starMaterial.uniforms.clickPoint.value.set(point.x, point.y); starMaterial.uniforms.pulse.value = .001; emitCore(point);
-        if (reduced) emit(point, 24); else pendingBursts.push({ at: performance.now() + 115, point, section: pair, constellation: true });
+        if (!reduced) { emitClickConstellation(point); pendingBursts.push({ at: now + 85, point }); }
       }
       down = false;
     };
@@ -239,7 +218,7 @@ export default function SpaceView({ active }: { active: boolean }) {
     };
     addEventListener("pointermove", onPointerMove, { passive: true }); addEventListener("pointerdown", onPointerDown, { passive: true }); addEventListener("pointerup", onPointerUp, { passive: true }); addEventListener("pointerleave", onPointerLeave); addEventListener("space-interaction", onSpaceInteraction);
 
-    let sectionCenters: number[] = [], scrollVelocity = 0, lastScroll = scrollY, lastTime = performance.now(), frame = 0, currentPointerX = 0, currentPointerY = 0, smoothMorph = 0;
+    let sectionCenters: number[] = [], scrollVelocity = 0, lastScroll = scrollY, lastTime = performance.now(), frame = 0, currentPointerX = 0, currentPointerY = 0, smoothMorph = 0, lastIdleFrame = 0;
     const measure = () => { sectionCenters = SECTION_IDS.map(id => { const element = document.getElementById(id); return element ? element.offsetTop + element.offsetHeight * .5 : 0; }); };
     const resizeObserver = new ResizeObserver(measure); SECTION_IDS.forEach(id => { const el = document.getElementById(id); if (el) resizeObserver.observe(el); }); measure();
     const scrollState = () => {
@@ -256,19 +235,24 @@ export default function SpaceView({ active }: { active: boolean }) {
     };
     const gravityPoints = [[3.6, 1.25], [3.15, .55], [3.85, .1], [3.15, .15], [3.7, .15], [3.25, .15]];
     const animate = (now: number) => {
-      frame = requestAnimationFrame(animate); if (!activeRef.current && starMaterial.uniforms.opacity.value < .002) return;
+      frame = requestAnimationFrame(animate);
+      if (document.visibilityState === "hidden") return;
+      if (!activeRef.current && starMaterial.uniforms.opacity.value < .002) return;
+      if (!activeRef.current && now - lastIdleFrame < 90) return;
+      lastIdleFrame = now;
       const dt = Math.min(.04, (now - lastTime) / 1000); lastTime = now; const state = scrollState();
       if (state.index !== pair) {
         pair = state.index; smoothMorph = state.t;
         (starsGeo.attributes.position as THREE.BufferAttribute).array = compositions[pair]; (starsGeo.attributes.targetPosition as THREE.BufferAttribute).array = compositions[Math.min(pair + 1, compositions.length - 1)]; starsGeo.attributes.position.needsUpdate = starsGeo.attributes.targetPosition.needsUpdate = true;
       }
-      smoothMorph += (state.t - smoothMorph) * (reduced ? 1 : .065); const easedMorph = smoothMorph * smoothMorph * (3 - 2 * smoothMorph); starMaterial.uniforms.morph.value = smoothMorph; starMaterial.uniforms.time.value = now * .001;
-      const deltaScroll = scrollY - lastScroll; lastScroll = scrollY; scrollVelocity += (THREE.MathUtils.clamp(deltaScroll * .006, -1.15, 1.15) - scrollVelocity) * .12; scrollVelocity *= .9;
+      smoothMorph += (state.t - smoothMorph) * (reduced ? 1 : .035); const easedMorph = smoothMorph * smoothMorph * (3 - 2 * smoothMorph); starMaterial.uniforms.morph.value = smoothMorph; starMaterial.uniforms.time.value = now * .001;
+      const deltaScroll = scrollY - lastScroll; lastScroll = scrollY; scrollVelocity += (THREE.MathUtils.clamp(deltaScroll * .0025, -.38, .38) - scrollVelocity) * .1; scrollVelocity *= .88;
       currentPointerX += (pointerTargetX - currentPointerX) * (reduced ? .2 : .025); currentPointerY += (pointerTargetY - currentPointerY) * (reduced ? .2 : .025); starMaterial.uniforms.pointer.value.set(reduced ? 0 : currentPointerX, reduced ? 0 : currentPointerY); starMaterial.uniforms.scrollForce.value = reduced ? 0 : scrollVelocity;
-      const gravityA = gravityPoints[pair], gravityB = gravityPoints[Math.min(pair + 1, gravityPoints.length - 1)]; starMaterial.uniforms.gravityPoint.value.set(THREE.MathUtils.lerp(gravityA[0], gravityB[0], easedMorph), THREE.MathUtils.lerp(gravityA[1], gravityB[1], easedMorph)); starMaterial.uniforms.gravityStrength.value = reduced ? 0 : .65 + Math.sin(easedMorph * Math.PI) * .35;
-      starMaterial.uniforms.opacity.value += ((activeRef.current ? 1 : 0) - starMaterial.uniforms.opacity.value) * (reduced ? .2 : .04); lineMaterial.opacity += ((activeRef.current ? .115 : 0) * (1 - Math.min(1, Math.abs(scrollVelocity)) * .45) - lineMaterial.opacity) * .05;
-      if (starMaterial.uniforms.pulse.value > 0) { starMaterial.uniforms.pulse.value += dt * 1.12; if (starMaterial.uniforms.pulse.value >= 1) starMaterial.uniforms.pulse.value = 0; }
-      while (pendingBursts.length && pendingBursts[0].at <= now) { const burst = pendingBursts.shift()!; emit(burst.point, mobile ? 95 : 155); if (burst.constellation) emitConstellation(burst.point, burst.section); }
+      const gravityA = gravityPoints[pair], gravityB = gravityPoints[Math.min(pair + 1, gravityPoints.length - 1)]; starMaterial.uniforms.gravityPoint.value.set(THREE.MathUtils.lerp(gravityA[0], gravityB[0], easedMorph), THREE.MathUtils.lerp(gravityA[1], gravityB[1], easedMorph)); starMaterial.uniforms.gravityStrength.value = reduced ? 0 : .2 + Math.sin(easedMorph * Math.PI) * .08;
+      const linePhase = mobile ? 0 : pair === 1 ? THREE.MathUtils.smoothstep(easedMorph, .25, .92) : pair === 2 ? 1 - THREE.MathUtils.smoothstep(easedMorph, 0, .22) : 0;
+      starMaterial.uniforms.opacity.value += ((activeRef.current ? .82 : 0) - starMaterial.uniforms.opacity.value) * (reduced ? .2 : .04); lineMaterial.opacity += ((activeRef.current ? .035 * linePhase : 0) - lineMaterial.opacity) * .055;
+      if (starMaterial.uniforms.pulse.value > 0) { starMaterial.uniforms.pulse.value += dt * 1.45; if (starMaterial.uniforms.pulse.value >= 1) starMaterial.uniforms.pulse.value = 0; }
+      while (pendingBursts.length && pendingBursts[0].at <= now) { const burst = pendingBursts.shift()!; emit(burst.point, mobile ? 14 : 22); }
       for (let i = 0; i < maxTemp; i++) if (life[i] > 0) {
         age[i] += dt; if (age[i] >= life[i]) { life[i] = 0; tempSizes[i] = 0; continue; }
         const o = i * 3, fade = 1 - age[i] / life[i];
