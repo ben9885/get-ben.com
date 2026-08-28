@@ -10,7 +10,6 @@ button { color:inherit; font:inherit; }
 .serif { font-family:"Iowan Old Style","Times New Roman",serif; font-style:italic; font-weight:400; }
 .nav-wrap { position:sticky; top:0; z-index:20; padding:14px var(--gutter); background:transparent; border:0; transition:color 1s ease; }
 nav { max-width:1120px; margin:auto; display:flex; align-items:center; gap:28px; min-width:0; }
-.monogram { font-weight:750; letter-spacing:-.06em; width:28px; flex:0 0 auto; }
 .nav-links { display:flex; gap:clamp(16px,2.4vw,32px); overflow-x:auto; scrollbar-width:none; flex:1; padding:4px 0; }
 .nav-links::-webkit-scrollbar { display:none; }
 .nav-links a { position:relative; white-space:nowrap; font-size:13px; opacity:.56; transition:opacity .18s ease; }
@@ -78,7 +77,7 @@ h1 { max-width:1000px; margin:0; padding-bottom:.12em; font-size:clamp(64px,12vw
 .hero-socials a:hover { background:var(--ink); color:#fff; transform:translateY(-2px); }
 .hero-socials .linkedin-icon { font-size:12px; letter-spacing:-.06em; }
 .hero-socials .contra-icon { width:14px; height:14px; display:block; }
-.hero-notes { margin-top:auto; padding:40px 0 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.hero-notes { margin-top:auto; padding:40px 0 24px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .hero-notes .hero-socials { margin-top:0; margin-left:auto; flex:0 0 auto; }
 .statement { padding-top:clamp(110px,16vw,210px); }
 .large-copy { font-size:clamp(36px,5.5vw,75px); line-height:.99; letter-spacing:-.057em; margin:0; max-width:1080px; }

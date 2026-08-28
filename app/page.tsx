@@ -70,7 +70,7 @@ function ExternalLink({ href, children, className = "" }: { href: string; childr
 }
 
 function Navigation({ active, citySwitcher }: { active: string; citySwitcher: React.ReactNode }) {
-  return <header className="nav-wrap"><nav aria-label="Primary"><a href="#about" className="monogram" aria-label="Ben Huffman, home">BH</a><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
+  return <header className="nav-wrap"><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
 }
 
 function ProjectRow({ item }: { item: Project }) {
