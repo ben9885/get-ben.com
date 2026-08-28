@@ -78,7 +78,8 @@ h1 { max-width:1000px; margin:0; padding-bottom:.12em; font-size:clamp(64px,12vw
 .hero-socials a:hover { background:var(--ink); color:#fff; transform:translateY(-2px); }
 .hero-socials .linkedin-icon { font-size:12px; letter-spacing:-.06em; }
 .hero-socials .contra-icon { width:14px; height:14px; display:block; }
-.hero-notes { margin-top:auto; padding:40px 0 24px; border-bottom:1px solid var(--line); }
+.hero-notes { margin-top:auto; padding:40px 0 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.hero-notes .hero-socials { margin-top:0; margin-left:auto; flex:0 0 auto; }
 .statement { padding-top:clamp(110px,16vw,210px); }
 .large-copy { font-size:clamp(36px,5.5vw,75px); line-height:.99; letter-spacing:-.057em; margin:0; max-width:1080px; text-wrap:pretty; }
 .brand-inline { display:inline-flex; align-items:baseline; gap:.08em; white-space:nowrap; vertical-align:.04em; }
@@ -186,6 +187,8 @@ footer a { font-size:12px; }
   .hero { min-height:68vh; }
   h1 { font-size:clamp(66px,24vw,100px); max-width:95%; }
   .dek { font-size:28px; }
+  .hero-notes { gap:14px; }
+  .hero-notes > span { max-width:58%; line-height:1.5; }
   .link-pair { grid-template-columns:1fr; }
   .link-pair a:first-child { border-right:0; }
   .link-pair a:last-child { padding-left:0; }
