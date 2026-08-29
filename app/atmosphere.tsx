@@ -7,7 +7,7 @@ export type City = "SF" | "NY";
 export type EnvironmentMode = "sf" | "ny" | "space";
 export type WeatherState = { weatherCode: number; temperature: number; cloudCover: number; humidity: number; precipitation: number; visibility: number } | null;
 type Oklch = [number, number, number];
-export type Atmosphere = { id: string; style: CSSProperties; foreground: string; line: string; nav: string };
+export type Atmosphere = { id: string; style: CSSProperties; foreground: string; line: string; nav: string; telemetry: { cardBg: string; cardText: string; cardBorder: string; ribbonBg: string; ribbonText: string } };
 
 export const CITIES = {
   SF: { name: "San Francisco", lat: 37.7749, lng: -122.4194, zone: "America/Los_Angeles", bias: [82, .055, 220] as Oklch },
@@ -99,12 +99,21 @@ function generateAtmosphere(city:City, weather:WeatherState, date=new Date()):At
   const sunIntensity=daylight*(1-clouds*.58)*(fog?.3:1)*(rain?.35:1), sunSize=lerp(56,105,clouds)*(fog?1.3:1), haze=clamp(.12+humidity*.18+clouds*.12+(fog?.32:0)+(Math.abs(solar.altitude)<10?.18:0));
   const ambientX=city==="SF"?76:22, ambientY=solar.azimuth<180?70:26, night=solar.altitude < -7;
   const foreground=(p[0][0]+p[1][0]+p[2][0])/3<52?"#f3f1e8":"#252a3c", line=(foreground==="#f3f1e8"?"rgba(243,241,232,.32)":"rgba(37,42,60,.3)");
+  const lightTelemetry=solar.altitude>=-1.5;
+  const telemetryHue=p[3][2];
+  const lightSurface:[number,number,number]=[95,Math.min(p[3][1]*.52,.07),telemetryHue];
+  const darkSurface=tune(p[0],solar.altitude<-7?5:9,.78);
+  const telemetry=lightTelemetry?{
+    cardBg:css(lightSurface,.88),cardText:"#252a3c",cardBorder:"rgba(37,42,60,.28)",ribbonBg:css(lightSurface,.96),ribbonText:"#252a3c",
+  }:{
+    cardBg:css(darkSurface,.92),cardText:"#f3f0e8",cardBorder:"rgba(243,240,232,.24)",ribbonBg:css(darkSurface,.97),ribbonText:"#f3f0e8",
+  };
   const style={
     "--sky-top":css(p[0]),"--sky-mid":css(p[1]),"--sky-horizon":css(p[2]),"--sun-core":css(p[3],sunIntensity*.8),"--sun-glow":css(p[4],sunIntensity*.42),
     "--sun-x":`${sunX}%`,"--sun-y":`${sunY}%`,"--sun-size":`${sunSize}vw`,"--ambient-color":css(p[5],night?.38:.48),"--ambient-x":`${ambientX}%`,"--ambient-y":`${ambientY}%`,
     "--haze-color":css(p[6],haze),"--haze-opacity":haze,"--foreground":foreground,"--atmosphere-line":line,
   } as CSSProperties;
-  return {id:`${city}-${date.getMinutes()}-${weather?.weatherCode??"t"}-${weather?.cloudCover??0}`,style,foreground,line,nav:css(p[0],.9)};
+  return {id:`${city}-${date.getMinutes()}-${weather?.weatherCode??"t"}-${weather?.cloudCover??0}`,style,foreground,line,nav:css(p[0],.9),telemetry};
 }
 
 function readCache():Partial<Record<City,{at:number;data:WeatherState}>> { try{return JSON.parse(localStorage.getItem("weather-cache")||"{}")}catch{return{}} }

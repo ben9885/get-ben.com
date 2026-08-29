@@ -69,9 +69,10 @@ function ExternalLink({ href, children, className = "" }: { href: string; childr
   return <a href={href} target="_blank" rel="noreferrer" className={`external ${className}`}>{children} <Arrow /></a>;
 }
 
-function Navigation({ active, citySwitcher }: { active: string; citySwitcher: React.ReactNode }) {
+function Navigation({ active, citySwitcher, onNavigate }: { active: string; citySwitcher: React.ReactNode; onNavigate: (section: string) => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [marquee, setMarquee] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const update = () => {
       setScrolled(window.scrollY > 16);
@@ -81,7 +82,27 @@ function Navigation({ active, citySwitcher }: { active: string; citySwitcher: Re
     window.addEventListener("scroll", update, { passive: true });
     return () => window.removeEventListener("scroll", update);
   }, []);
-  return <header className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`}><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
+  const navigate = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    event.preventDefault();
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    onNavigate(sectionId);
+    history.pushState(null, "", `#${sectionId}`);
+    if (sectionId === "about") {
+      window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      return;
+    }
+    const target = sectionId === "contra"
+      ? section.querySelector<HTMLElement>(".section-label")
+      : section.querySelector<HTMLElement>(".section-head");
+    if (!target) return;
+    const navHeight = headerRef.current?.getBoundingClientRect().height ?? 66;
+    const projectedMarqueeHeight = 52;
+    const breathingRoom = window.innerWidth <= 700 ? 24 : 36;
+    const top = target.getBoundingClientRect().top + window.scrollY - navHeight - projectedMarqueeHeight - breathingRoom;
+    window.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
+  return <header ref={headerRef} className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`}><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""} aria-current={active === s ? "page" : undefined} onClick={event => navigate(event, s)}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
 }
 
 function ProjectRow({ item }: { item: Project }) {
@@ -131,19 +152,19 @@ function SiteLoader({ mode }: { mode: EnvironmentMode }) {
     let frame = 0;
     let cancelled = false;
     const started = performance.now();
-    const minimumDuration = 900;
+    const minimumDuration = 1500;
 
     const readiness = Promise.race([
       Promise.all([
         document.fonts?.ready ?? Promise.resolve(),
-        new Promise<void>(resolve => window.setTimeout(resolve, 620)),
+        new Promise<void>(resolve => window.setTimeout(resolve, 900)),
       ]),
-      new Promise<void>(resolve => window.setTimeout(resolve, 1400)),
+      new Promise<void>(resolve => window.setTimeout(resolve, 2000)),
     ]);
 
     const animateProgress = (now: number) => {
       const elapsed = now - started;
-      const eased = 1 - Math.pow(1 - Math.min(elapsed / 1050, 1), 3);
+      const eased = 1 - Math.pow(1 - Math.min(elapsed / 1650, 1), 3);
       setProgress(Math.min(94, Math.round(eased * 94)));
       if (!cancelled && elapsed < minimumDuration) frame = requestAnimationFrame(animateProgress);
     };
@@ -169,15 +190,15 @@ function SiteLoader({ mode }: { mode: EnvironmentMode }) {
             { transform: "translate3d(0,0,0) scale(1)", opacity: 1 },
             { transform: `translate3d(${to.left - from.left}px,${to.top - from.top}px,0) scale(${to.width / Math.max(from.width, 1)})`, opacity: 1, offset: .76 },
             { transform: `translate3d(${to.left - from.left}px,${to.top - from.top}px,0) scale(${to.width / Math.max(from.width, 1)})`, opacity: 0 },
-          ], { duration: 720, easing: "cubic-bezier(.16,1,.3,1)", fill: "forwards" });
+          ], { duration: 1050, easing: "cubic-bezier(.16,1,.3,1)", fill: "forwards" });
         }
         window.setTimeout(() => {
           sessionStorage.setItem("ben-loader-seen", "1");
           root.classList.remove("loader-active", "loader-revealing");
           document.body.style.overflow = previousOverflow;
           setVisible(false);
-        }, 760);
-      }, 180);
+        }, 1120);
+      }, 260);
     });
 
     return () => {
@@ -210,6 +231,60 @@ function SiteLoader({ mode }: { mode: EnvironmentMode }) {
   </div>;
 }
 
+function HeroTitle() {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const portraitRef = useRef<HTMLSpanElement>(null);
+  const frameRef = useRef(0);
+  const shineFrameRef = useRef(0);
+  const trackShine = (event: React.PointerEvent<HTMLHeadingElement>) => {
+    if (event.pointerType === "touch") return;
+    const title = titleRef.current;
+    if (!title) return;
+    const bounds = title.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((event.clientX - bounds.left) / Math.max(bounds.width, 1)) * 100));
+    const y = Math.max(0, Math.min(100, ((event.clientY - bounds.top) / Math.max(bounds.height, 1)) * 100));
+    cancelAnimationFrame(shineFrameRef.current);
+    shineFrameRef.current = requestAnimationFrame(() => {
+      title.style.setProperty("--shine-x", `${x.toFixed(2)}%`);
+      title.style.setProperty("--shine-y", `${y.toFixed(2)}%`);
+    });
+  };
+  const resetShine = () => {
+    cancelAnimationFrame(shineFrameRef.current);
+    titleRef.current?.style.setProperty("--shine-x", "50%");
+    titleRef.current?.style.setProperty("--shine-y", "50%");
+  };
+  const trackPortrait = (event: React.PointerEvent<HTMLSpanElement>) => {
+    if (event.pointerType === "touch") return;
+    const portrait = portraitRef.current;
+    if (!portrait) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - .5) * 28;
+    const y = ((event.clientY - bounds.top) / Math.max(bounds.height, 1) - .5) * 16;
+    cancelAnimationFrame(frameRef.current);
+    frameRef.current = requestAnimationFrame(() => {
+      portrait.style.setProperty("--portrait-x", `${x.toFixed(2)}px`);
+      portrait.style.setProperty("--portrait-y", `${y.toFixed(2)}px`);
+      portrait.style.setProperty("--portrait-rotate", `${(x * .055).toFixed(2)}deg`);
+    });
+  };
+  const showPortrait = (event: React.PointerEvent<HTMLSpanElement>) => {
+    if (event.pointerType === "touch") return;
+    portraitRef.current?.classList.add("is-visible");
+    trackPortrait(event);
+  };
+  const hidePortrait = () => {
+    cancelAnimationFrame(frameRef.current);
+    const portrait = portraitRef.current;
+    if (!portrait) return;
+    portrait.classList.remove("is-visible");
+    portrait.style.setProperty("--portrait-x", "0px");
+    portrait.style.setProperty("--portrait-y", "0px");
+    portrait.style.setProperty("--portrait-rotate", "0deg");
+  };
+  return <h1 ref={titleRef} className="hero-title" onPointerMove={trackShine} onPointerLeave={resetShine}>Hey, <span className="ben-hover" onPointerEnter={showPortrait} onPointerMove={trackPortrait} onPointerLeave={hidePortrait}><span className="ben-hover-label">I’m Ben<span className="serif">.</span></span><span ref={portraitRef} className="ben-portrait" aria-hidden="true"><img src="/images/ben-headshot.jpeg" alt="" /></span></span></h1>;
+}
+
 export default function Home() {
   const [active, setActive] = useState("about");
   const [mode, setModeState] = useState<EnvironmentMode>("ny");
@@ -237,17 +312,17 @@ export default function Home() {
   }, []);
   useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
   const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
-  useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav)}},[mode,atmosphere]);
+  useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)");root.style.setProperty("--telemetry-card-bg","rgb(12 29 57 / 92%)");root.style.setProperty("--telemetry-card-text","#f3f0e8");root.style.setProperty("--telemetry-card-border","rgb(243 240 232 / 22%)");root.style.setProperty("--telemetry-ribbon-bg","rgb(12 29 57 / 97%)");root.style.setProperty("--telemetry-ribbon-text","#f3f0e8")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav);root.style.setProperty("--telemetry-card-bg",atmosphere.telemetry.cardBg);root.style.setProperty("--telemetry-card-text",atmosphere.telemetry.cardText);root.style.setProperty("--telemetry-card-border",atmosphere.telemetry.cardBorder);root.style.setProperty("--telemetry-ribbon-bg",atmosphere.telemetry.ribbonBg);root.style.setProperty("--telemetry-ribbon-text",atmosphere.telemetry.ribbonText)}},[mode,atmosphere]);
 
   return <>
     <AtmosphereBackground atmosphere={atmosphere} />
     {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
     <SiteLoader mode={mode} />
-    <Navigation active={active} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
+    <Navigation active={active} onNavigate={setActive} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
     <main>
       <section id="about" className="hero reveal">
         <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative Researcher × Angel Investor</p></div>
-        <h1>Hey, I’m Ben<span className="serif">.</span></h1>
+        <HeroTitle />
         <p className="dek">I’m a creative builder, entrepreneur, and angel investor.</p>
         <div className="hero-socials" aria-label="Social links">
           <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit" aria-label="Ben Huffman on X"><span aria-hidden>X</span></a>
