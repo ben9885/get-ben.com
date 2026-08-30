@@ -2,9 +2,17 @@
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
+import philosophicalQuotesData from "./data/philosophical-quotes.json";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
 const SpaceView = lazy(() => import("./space-view"));
+type PhilosophicalQuote = { quote: string; author: string; source: string; year: string };
+const philosophicalQuotes = philosophicalQuotesData as PhilosophicalQuote[];
+const getDailyQuoteIndex = (date = new Date()) => {
+  const localDay = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  return Math.floor(localDay / 86_400_000) % philosophicalQuotes.length;
+};
+const formatQuoteYear = (year: string) => year.replace(/^c\. (\d{1,3})$/, "c. $1 CE");
 
 type Project = {
   n: string;
@@ -73,17 +81,155 @@ function Navigation({ active, citySwitcher, onNavigate }: { active: string; city
   const [scrolled, setScrolled] = useState(false);
   const [marquee, setMarquee] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const sectionNavRef = useRef<HTMLDivElement>(null);
+  const sectionButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const lensRef = useRef<HTMLSpanElement>(null);
+  const lensCausticRef = useRef<HTMLSpanElement>(null);
+  const lensMotionRef = useRef({ x: 0, width: 0, velocityX: 0, velocityWidth: 0, targetX: 0, targetWidth: 0, pendingWidth: 0, widthAt: 0, last: 0, frame: 0, ready: false });
+  const paintLens = () => {
+    const lens = lensRef.current, motion = lensMotionRef.current;
+    if (!lens) return;
+    const stretch = 1 + Math.min(Math.abs(motion.velocityX) * .00008, .04);
+    const skew = Math.max(-1.5, Math.min(1.5, motion.velocityX * .003));
+    lens.style.width = `${motion.width}px`;
+    lens.style.transform = `translate3d(${motion.x}px,0,0) scaleX(${stretch}) skewX(${skew}deg)`;
+  };
+  const startLensSpring = () => {
+    const motion = lensMotionRef.current;
+    if (motion.frame) return;
+    const tick = (time: number) => {
+      const state = lensMotionRef.current;
+      const dt = Math.min((time - (state.last || time)) / 1000, .032);
+      state.last = time;
+      if (time >= state.widthAt) state.targetWidth = state.pendingWidth;
+      const stiffness = 48, damping = 14, mass = 1.2;
+      const accelerationX = (stiffness * (state.targetX - state.x) - damping * state.velocityX) / mass;
+      const accelerationWidth = (stiffness * (state.targetWidth - state.width) - damping * state.velocityWidth) / mass;
+      state.velocityX += accelerationX * dt;
+      state.velocityWidth += accelerationWidth * dt;
+      state.x += state.velocityX * dt;
+      state.width += state.velocityWidth * dt;
+      paintLens();
+      const settled = Math.abs(state.targetX - state.x) < .08 && Math.abs(state.targetWidth - state.width) < .08 && Math.abs(state.velocityX) < .12 && Math.abs(state.velocityWidth) < .12 && time >= state.widthAt;
+      if (settled) {
+        state.x = state.targetX;
+        state.width = state.targetWidth;
+        state.velocityX = 0;
+        state.velocityWidth = 0;
+        state.frame = 0;
+        state.last = 0;
+        paintLens();
+        return;
+      }
+      state.frame = requestAnimationFrame(tick);
+    };
+    motion.frame = requestAnimationFrame(tick);
+  };
+  useLayoutEffect(() => {
+    const container = sectionNavRef.current, button = sectionButtonRefs.current[active];
+    if (!container || !button) return;
+    const motion = lensMotionRef.current;
+    const measure = (immediate = false) => {
+      const targetX = button.offsetLeft, targetWidth = button.offsetWidth;
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!motion.ready || immediate || reducedMotion) {
+        motion.x = targetX;
+        motion.width = targetWidth;
+        motion.targetX = targetX;
+        motion.targetWidth = targetWidth;
+        motion.pendingWidth = targetWidth;
+        motion.velocityX = 0;
+        motion.velocityWidth = 0;
+        motion.widthAt = 0;
+        motion.ready = true;
+        paintLens();
+        return;
+      }
+      motion.targetX = targetX;
+      motion.pendingWidth = targetWidth;
+      motion.widthAt = performance.now() + 70;
+      startLensSpring();
+    };
+    measure();
+    let observedWidth = container.offsetWidth;
+    const resizeObserver = new ResizeObserver(() => {
+      const nextWidth = container.offsetWidth;
+      if (Math.abs(nextWidth - observedWidth) < .5) return;
+      observedWidth = nextWidth;
+      measure(true);
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, [active]);
+  useEffect(() => () => {
+    if (lensMotionRef.current.frame) cancelAnimationFrame(lensMotionRef.current.frame);
+  }, []);
   useEffect(() => {
     const update = () => {
       setScrolled(window.scrollY > 16);
-      setMarquee(window.scrollY > 120);
+      setMarquee(window.innerWidth <= 820 || window.scrollY > 120);
     };
     update();
     window.addEventListener("scroll", update, { passive: true });
-    return () => window.removeEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
-  const navigate = (event: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
-    event.preventDefault();
+  useEffect(() => {
+    let frame = 0;
+    const updateProgress = () => {
+      frame = 0;
+      const sectionIndex = sections.indexOf(active);
+      const section = document.getElementById(active);
+      if (!section || sectionIndex < 0) return;
+      const next = document.getElementById(sections[sectionIndex + 1] ?? "");
+      const start = section.offsetTop;
+      const end = next?.offsetTop ?? document.documentElement.scrollHeight;
+      const readingLine = window.scrollY + window.innerHeight * .34;
+      const progress = Math.max(0, Math.min(1, (readingLine - start) / Math.max(1, end - start)));
+      headerRef.current?.style.setProperty("--section-progress", `${(progress * 100).toFixed(1)}%`);
+    };
+    const scheduleProgress = () => {
+      if (!frame) frame = requestAnimationFrame(updateProgress);
+    };
+    updateProgress();
+    window.addEventListener("scroll", scheduleProgress, { passive: true });
+    window.addEventListener("resize", scheduleProgress);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scheduleProgress);
+      window.removeEventListener("resize", scheduleProgress);
+    };
+  }, [active]);
+  const moveGlassHighlight = (event: React.PointerEvent<HTMLElement>) => {
+    if (event.pointerType === "touch" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const surface = event.currentTarget.querySelector<HTMLElement>(".nav-shell");
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+    event.currentTarget.style.setProperty("--glass-x", `${x.toFixed(1)}%`);
+    event.currentTarget.style.setProperty("--glass-y", `${y.toFixed(1)}%`);
+  };
+  const resetGlassHighlight = (event: React.PointerEvent<HTMLElement>) => {
+    event.currentTarget.style.setProperty("--glass-x", "50%");
+    event.currentTarget.style.setProperty("--glass-y", "-20%");
+  };
+  const moveLensCaustic = (event: React.PointerEvent<HTMLDivElement>) => {
+    const lens = lensRef.current, caustic = lensCausticRef.current;
+    if (!lens || !caustic || event.pointerType === "touch") return;
+    const rect = lens.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / Math.max(1, rect.height)));
+    caustic.style.transform = `translate3d(${((x - .5) * 18).toFixed(2)}px,${((y - .5) * 7).toFixed(2)}px,0)`;
+  };
+  const resetLensCaustic = () => {
+    if (lensCausticRef.current) lensCausticRef.current.style.transform = "translate3d(0,0,0)";
+    sectionNavRef.current?.classList.remove("is-pressing");
+  };
+  const navigate = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (!section) return;
     onNavigate(sectionId);
@@ -102,7 +248,18 @@ function Navigation({ active, citySwitcher, onNavigate }: { active: string; city
     const top = target.getBoundingClientRect().top + window.scrollY - navHeight - projectedMarqueeHeight - breathingRoom;
     window.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };
-  return <header ref={headerRef} className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`}><nav aria-label="Primary"><div className="nav-links">{sections.map(s => <a key={s} href={`#${s}`} className={active === s ? "active" : ""} aria-current={active === s ? "page" : undefined} onClick={event => navigate(event, s)}>{s[0].toUpperCase() + s.slice(1)}</a>)}</div>{citySwitcher}</nav></header>;
+  const sectionNavigation = <div ref={sectionNavRef} className="section-liquid-fallback" aria-label="Primary navigation" onPointerMove={moveLensCaustic} onPointerLeave={resetLensCaustic} onPointerUp={() => sectionNavRef.current?.classList.remove("is-pressing")}>
+    <span ref={lensRef} className="section-liquid-lens" aria-hidden="true"><span className="section-liquid-lens-surface"><span ref={lensCausticRef} className="section-liquid-caustic" /></span></span>
+    {sections.map(section => <button ref={node => { sectionButtonRefs.current[section] = node; }} key={section} type="button" className={active === section ? "active" : ""} aria-current={active === section ? "page" : undefined} onPointerDown={() => sectionNavRef.current?.classList.add("is-pressing")} onClick={() => navigate(section)}>{section[0].toUpperCase() + section.slice(1)}</button>)}
+  </div>;
+  return <header ref={headerRef} className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`} onPointerMove={moveGlassHighlight} onPointerLeave={resetGlassHighlight}>
+    <div className="nav-shell">
+      <div className="nav-links">
+        {sectionNavigation}
+      </div>
+      {citySwitcher}
+    </div>
+  </header>;
 }
 
 function ProjectRow({ item }: { item: Project }) {
@@ -234,6 +391,7 @@ function SiteLoader({ mode }: { mode: EnvironmentMode }) {
 function HeroTitle() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const portraitRef = useRef<HTMLSpanElement>(null);
+  const portraitCycleRef = useRef(0);
   const frameRef = useRef(0);
   const shineFrameRef = useRef(0);
   const trackShine = (event: React.PointerEvent<HTMLHeadingElement>) => {
@@ -270,7 +428,11 @@ function HeroTitle() {
   };
   const showPortrait = (event: React.PointerEvent<HTMLSpanElement>) => {
     if (event.pointerType === "touch") return;
-    portraitRef.current?.classList.add("is-visible");
+    const portrait = portraitRef.current;
+    if (!portrait) return;
+    portrait.dataset.portrait = String(portraitCycleRef.current % 2);
+    portraitCycleRef.current += 1;
+    portrait.classList.add("is-visible");
     trackPortrait(event);
   };
   const hidePortrait = () => {
@@ -282,13 +444,56 @@ function HeroTitle() {
     portrait.style.setProperty("--portrait-y", "0px");
     portrait.style.setProperty("--portrait-rotate", "0deg");
   };
-  return <h1 ref={titleRef} className="hero-title" onPointerMove={trackShine} onPointerLeave={resetShine}>Hey, <span className="ben-hover" onPointerEnter={showPortrait} onPointerMove={trackPortrait} onPointerLeave={hidePortrait}><span className="ben-hover-label">I’m Ben<span className="serif">.</span></span><span ref={portraitRef} className="ben-portrait" aria-hidden="true"><img src="/images/ben-headshot.jpeg" alt="" /></span></span></h1>;
+  return <h1 ref={titleRef} className="hero-title" onPointerMove={trackShine} onPointerLeave={resetShine}>Hey, <span className="ben-hover" onPointerEnter={showPortrait} onPointerMove={trackPortrait} onPointerLeave={hidePortrait}><span className="ben-hover-label">I’m Ben<span className="serif">.</span></span><span ref={portraitRef} className="ben-portrait" data-portrait="0" aria-hidden="true"><img className="ben-portrait-image ben-portrait-current" src="/images/ben-headshot.jpeg" alt="" /><img className="ben-portrait-image ben-portrait-colorbar" src="/images/ben-headshot-colorbar.jpg" alt="" /></span></span></h1>;
+}
+
+function PhilosophyRibbon() {
+  const ribbonRef = useRef<HTMLElement>(null);
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  useEffect(() => {
+    setQuoteIndex(getDailyQuoteIndex());
+    const timer = window.setInterval(() => setQuoteIndex(getDailyQuoteIndex()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const ribbon = ribbonRef.current;
+    const root = document.documentElement;
+    if (!ribbon) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      root.classList.toggle("daily-thought-visible", entry.isIntersecting);
+    }, { threshold: .08 });
+    observer.observe(ribbon);
+    return () => {
+      observer.disconnect();
+      root.classList.remove("daily-thought-visible");
+    };
+  }, []);
+  const quote = philosophicalQuotes[quoteIndex];
+  const run = (duplicate = false) => <div className="philosophy-ribbon-run" aria-hidden={duplicate || undefined}>
+    <span className="philosophy-ribbon-index mono">Daily thought</span>
+    <span className="philosophy-ribbon-divider" aria-hidden />
+    <strong>“{quote.quote}”</strong>
+    <span className="philosophy-ribbon-author mono">— {quote.author} · {quote.source}</span>
+    <span className="philosophy-ribbon-year mono">{formatQuoteYear(quote.year)}</span>
+  </div>;
+  return <aside
+    ref={ribbonRef}
+    className="philosophy-ribbon"
+    aria-label={`Daily philosophical thought: ${quote.quote} — ${quote.author}, ${quote.source}, ${formatQuoteYear(quote.year)}`}
+  >
+    <div className="philosophy-ribbon-motion">
+      <div key={quoteIndex} className="philosophy-ribbon-track">
+        {run()}
+        {run(true)}
+      </div>
+    </div>
+  </aside>;
 }
 
 export default function Home() {
   const [active, setActive] = useState("about");
-  const [mode, setModeState] = useState<EnvironmentMode>("ny");
-  const [spaceLoaded, setSpaceLoaded] = useState(false);
+  const [mode, setModeState] = useState<EnvironmentMode>("space");
+  const [spaceLoaded, setSpaceLoaded] = useState(true);
   const { city, setCity, weather, atmosphere } = useCityAtmosphere();
   useEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { rootMargin: "-20% 0px -65%" });
@@ -310,8 +515,8 @@ export default function Home() {
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); root.classList.remove("motion-ready"); };
   }, []);
-  useEffect(()=>{const saved=localStorage.getItem("environmentMode");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}else{const preferred=localStorage.getItem("preferredCity");setModeState(preferred==="SF"?"sf":"ny")}},[]);
-  const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentMode",next);if(next==="space")setSpaceLoaded(true)};
+  useEffect(()=>{const saved=localStorage.getItem("environmentModeV2");if(saved==="sf"||saved==="ny"||saved==="space"){setModeState(saved);if(saved==="sf")setCity("SF");if(saved==="ny")setCity("NY");if(saved==="space")setSpaceLoaded(true)}},[]);
+  const setMode=(next:EnvironmentMode)=>{setModeState(next);localStorage.setItem("environmentModeV2",next);if(next==="space")setSpaceLoaded(true)};
   useEffect(()=>{const root=document.documentElement;if(mode==="space"){root.classList.add("space-mode");root.style.setProperty("--ink","#f1f0ea");root.style.setProperty("--line","rgba(241,240,234,.18)");root.style.setProperty("--nav-bg","rgba(1,4,12,.88)");root.style.setProperty("--telemetry-card-bg","rgb(12 29 57 / 92%)");root.style.setProperty("--telemetry-card-text","#f3f0e8");root.style.setProperty("--telemetry-card-border","rgb(243 240 232 / 22%)");root.style.setProperty("--telemetry-ribbon-bg","rgb(12 29 57 / 97%)");root.style.setProperty("--telemetry-ribbon-text","#f3f0e8")}else{root.classList.remove("space-mode");root.style.setProperty("--ink",atmosphere.foreground);root.style.setProperty("--line",atmosphere.line);root.style.setProperty("--nav-bg",atmosphere.nav);root.style.setProperty("--telemetry-card-bg",atmosphere.telemetry.cardBg);root.style.setProperty("--telemetry-card-text",atmosphere.telemetry.cardText);root.style.setProperty("--telemetry-card-border",atmosphere.telemetry.cardBorder);root.style.setProperty("--telemetry-ribbon-bg",atmosphere.telemetry.ribbonBg);root.style.setProperty("--telemetry-ribbon-text",atmosphere.telemetry.ribbonText)}},[mode,atmosphere]);
 
   return <>
@@ -365,5 +570,6 @@ export default function Home() {
       </section>
     </main>
     <footer><strong>Ben Huffman</strong><span className="mono">© 2026</span><a href="#about">Back to top ↑</a></footer>
+    <PhilosophyRibbon />
   </>;
 }

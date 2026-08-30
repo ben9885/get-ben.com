@@ -20,6 +20,7 @@ const CONFIG = {
   },
   SF: {
     direct: /\b(san francisco|golden gate|alcatraz|presidio|yerba buena|treasure island|bay bridge)\b/i,
+    reject: /\b(berkeley|rancho san francisco|treasure island on the delaware|delaware river|port chicago|presidio san agust[ií]n del tucson|presidio san augustin del tucson|tucson|south napa)\b/i,
   },
   SPACE: {
     direct: /\b(space(?:craft|flight|walk| station| shuttle| probe| telescope| exploration)?|nasa|cosmonaut|astronaut|satellite|rocket|orbit(?:al|ed|ing)?|moon|lunar|planet|venus|mars|mercury|jupiter|saturn|uranus|neptune|pluto|asteroid|comet|galaxy|galileo|apollo|soyuz|sputnik|voyager|hubble|astronom(?:er|y|ical)|observatory|supernova|eclipse|enceladus)\b/i,
@@ -33,6 +34,12 @@ const GOVERNMENT = /\b(government|mayor|council|court|legislature|authority|depa
 const INFRASTRUCTURE = /\b(subway|rail|railway|transit|road|highway|water|power|utility|port|harbor|airport|bridge|tunnel|station|terminal|ferry|cable car)\b/i;
 const POLITICAL_HISTORY = /\b(president|prime minister|parliament|congress|senate|constitution|constitutional|treaty|election|elected|government|republic|kingdom|empire|independence|declaration|diplomatic|legislature|court|law|administration|mayor|governor)\b/i;
 const DEATH_REFERENCES = /\b(dies?|died|death|dead|killed|fatal|execution|executed|assassinat\w*|murder\w*|massacre|casualties)\b/i;
+
+// Guard against place-name collisions and milestones whose recorded locality does
+// not match where that day's event actually happened.
+const FACT_EXCLUSIONS = {
+  SF: /\b(berkeley|rancho san francisco|skystar wheel|treasure island on the delaware|delaware river|port chicago|presidio san agust[ií]n del tucson|presidio san augustin del tucson|tucson|south napa|bay area rapid transit system begins passenger service|california’s first state constitution was signed|flying tiger line flight 282)\b/i,
+};
 
 const OVERRIDES = {
   NY: {
@@ -58,9 +65,9 @@ const OVERRIDES = {
     "08-02": { year: 1873, text: "San Francisco’s first cable car began service.", href: "https://www.sfmta.com/getting-around/muni/cable-cars" },
     "08-27": { year: 1849, text: "A Gold Rush voyager entered the Golden Gate.", href: "https://www.nps.gov/safr/learn/historyculture/this-day-in-maritime-history-august.htm" },
     "08-28": { year: 1872, text: "San Francisco’s City and County Hospital opened on Potrero Avenue.", href: "https://sfghf.org/150-years/" },
+    "08-29": { year: 1966, text: "The Beatles played their final ticketed concert at Candlestick Park.", href: "https://www.thebeatles.com/last-ticketed-beatles-concert-candlestick-park" },
     "10-17": { year: 1989, text: "The Loma Prieta earthquake reshaped the Bay.", href: "https://earthquake.usgs.gov/earthquakes/events/1989lomaprieta/" },
     "10-08": { year: 1849, text: "A prefabricated Methodist church was dedicated on Powell Street.", href: "https://legacy.sfgenealogy.org/sf/history/hbbeg17.htm" },
-    "10-13": { year: 1849, text: "California’s first state constitution was signed after the constitutional convention.", href: "https://legacy.sfgenealogy.org/sf/history/hbbegn11.htm" },
     "11-20": { year: 1969, text: "The occupation of Alcatraz Island began.", href: "https://www.nps.gov/alca/learn/historyculture/we-hold-the-rock.htm" },
     "11-06": { year: 2010, text: "The renovated Parkside Branch Library reopened.", href: "https://sfpl.org/sites/default/files/pdf/blip/parksidefaq.pdf" },
     "12-30": { year: 1911, text: "The Pantages Theatre opened on Market Street.", href: "https://sanfranciscotheatres.blogspot.com/2017/10/pantages-theatre.html" },
@@ -259,6 +266,7 @@ function assemble(context, events, milestones) {
     const event = events.get(date), milestone = milestones.get(date);
     const generated = milestone?.sourceType === "architecture" ? milestone : event ?? milestone;
     const fact = OVERRIDES[context]?.[date] ?? generated;
+    if (fact && FACT_EXCLUSIONS[context]?.test(`${fact.text} ${fact.href}`)) continue;
     if (fact) result[date] = { year: fact.year, text: fact.text, href: fact.href, sourceType: OVERRIDES[context]?.[date] ? "curated" : fact.sourceType };
   }
   return result;
