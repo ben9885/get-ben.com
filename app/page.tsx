@@ -76,7 +76,7 @@ function ExternalLink({ href, children, className = "" }: { href: string; childr
   return <a href={href} target="_blank" rel="noreferrer" className={`external ${className}`}>{children} <ExternalArrow /></a>;
 }
 
-function Navigation({ active, citySwitcher, onNavigate }: { active: string; citySwitcher: React.ReactNode; onNavigate: (section: string) => void }) {
+function Navigation({ active, citySwitcher, onNavigate, tone }: { active: string; citySwitcher: React.ReactNode; onNavigate: (section: string) => void; tone: "light" | "dark" }) {
   const [scrolled, setScrolled] = useState(false);
   const [marquee, setMarquee] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -251,7 +251,8 @@ function Navigation({ active, citySwitcher, onNavigate }: { active: string; city
     <span ref={lensRef} className="section-liquid-lens" aria-hidden="true"><span className="section-liquid-lens-surface"><span ref={lensCausticRef} className="section-liquid-caustic" /></span></span>
     {sections.map(section => <button ref={node => { sectionButtonRefs.current[section] = node; }} key={section} type="button" className={active === section ? "active" : ""} aria-current={active === section ? "page" : undefined} onPointerDown={() => sectionNavRef.current?.classList.add("is-pressing")} onClick={() => navigate(section)}>{section[0].toUpperCase() + section.slice(1)}</button>)}
   </div>;
-  return <header ref={headerRef} className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`} onPointerMove={moveGlassHighlight} onPointerLeave={resetGlassHighlight}>
+  return <header ref={headerRef} data-tone={tone} className={`nav-wrap${scrolled ? " is-scrolled" : ""}${marquee ? " has-marquee" : ""}`} onPointerMove={moveGlassHighlight} onPointerLeave={resetGlassHighlight}>
+    <span className="mobile-nav-backdrop" aria-hidden="true" />
     <div className="nav-shell">
       <div className="nav-links">
         {sectionNavigation}
@@ -522,7 +523,7 @@ export default function Home() {
     <AtmosphereBackground atmosphere={atmosphere} />
     {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
     <SiteLoader mode={mode} />
-    <Navigation active={active} onNavigate={setActive} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} now={now} />} />
+    <Navigation active={active} onNavigate={setActive} tone={mode !== "space" && atmosphere.foreground === "#252a3c" ? "light" : "dark"} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} now={now} />} />
     <main>
       <section id="about" className="hero reveal">
         <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative Researcher × Angel Investor</p></div>
