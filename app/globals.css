@@ -84,12 +84,10 @@ button { color:inherit; font:inherit; }
 .city-switch button.selected .city-glyph,.city-switch button.selected .telescope-icon { transform:scale(1.08); }
 .weather-tip { position:absolute; z-index:2; left:50%; top:calc(100% + 17px); width:260px; max-width:calc(100vw - 32px); padding:14px 15px 13px; display:flex; flex-direction:column; overflow:hidden; color:var(--telemetry-card-text); background:var(--telemetry-card-bg); border:1px solid var(--telemetry-card-border); border-radius:16px; box-shadow:inset 0 1px rgb(255 255 255 / 20%),0 20px 50px rgb(12 24 52 / 7%); backdrop-filter:blur(20px) saturate(.94); -webkit-backdrop-filter:blur(20px) saturate(.94); font-size:11px; opacity:1; transform:translateX(-50%); pointer-events:auto; transition:opacity .18s ease,transform .18s ease,background-color .58s cubic-bezier(.16,1,.3,1),color .34s ease,border-radius .78s cubic-bezier(.16,1,.3,1),border-color .42s ease,box-shadow .58s ease; }
 .weather-card-body { display:flex; flex-direction:column; opacity:1; transition:opacity .18s ease,transform .35s cubic-bezier(.16,1,.3,1); }
-.weather-marquee { position:absolute; inset:0; display:flex; align-items:center; overflow:hidden; opacity:0; visibility:hidden; pointer-events:none; mask-image:linear-gradient(90deg,transparent,#000 2.5%,#000 97.5%,transparent); -webkit-mask-image:linear-gradient(90deg,transparent,#000 2.5%,#000 97.5%,transparent); transition:opacity .24s ease .3s,visibility 0s linear .54s; }
-.weather-marquee-layer,.weather-marquee-focus { position:absolute; inset:0; display:flex; align-items:center; overflow:hidden; }
-.weather-marquee-layer { opacity:.62; }
-.weather-marquee-focus { clip-path:inset(0 40%); opacity:1; pointer-events:none; }
-.weather-marquee-track { display:flex; align-items:center; width:max-content; will-change:transform; }
-.weather-marquee-run { display:flex; align-items:center; gap:clamp(20px,2.2vw,38px); padding-right:clamp(52px,6vw,96px); white-space:nowrap; font-variant-numeric:tabular-nums; font-size:12px; line-height:1; }
+/* A stationary alpha mask highlights one moving track without overlapping text copies. */
+.weather-marquee { position:absolute; inset:0; display:flex; align-items:center; overflow:hidden; opacity:0; visibility:hidden; pointer-events:none; mask-image:linear-gradient(90deg,transparent,rgb(0 0 0 / 62%) 2.5%,rgb(0 0 0 / 62%) 32%,#000 40%,#000 60%,rgb(0 0 0 / 62%) 68%,rgb(0 0 0 / 62%) 97.5%,transparent); -webkit-mask-image:linear-gradient(90deg,transparent,rgb(0 0 0 / 62%) 2.5%,rgb(0 0 0 / 62%) 32%,#000 40%,#000 60%,rgb(0 0 0 / 62%) 68%,rgb(0 0 0 / 62%) 97.5%,transparent); transition:opacity .24s ease .3s,visibility 0s linear .54s; }
+.weather-marquee-track { display:flex; flex:none; align-items:center; width:max-content; will-change:transform; }
+.weather-marquee-run { display:flex; flex:none; min-width:50vw; align-items:center; justify-content:space-between; gap:clamp(20px,2.2vw,38px); padding-right:clamp(52px,6vw,96px); white-space:nowrap; font-variant-numeric:tabular-nums; font-size:12px; line-height:1; }
 .weather-marquee-run strong { font-size:23px; letter-spacing:-.05em; font-weight:650; }
 .weather-marquee-run .mono { font-size:8px; opacity:.58; }
 .weather-marquee-live { display:flex; align-items:center; gap:7px; opacity:.82!important; }
@@ -137,7 +135,8 @@ main,footer { position:relative; z-index:1; }
 @keyframes atmosphere-in { from{opacity:0} to{opacity:1} }
 @keyframes atmosphere-out { from{opacity:1} to{opacity:0} }
 @keyframes weather-ribbon-in { from{opacity:.6;clip-path:inset(0 var(--ribbon-right) 0 var(--ribbon-left) round 16px)} to{opacity:1;clip-path:inset(0 round 0)} }
-@keyframes weather-marquee { to{transform:translate3d(-50%,0,0)} }
+/* Four equal runs: advance exactly one per loop, with enough content for wide screens. */
+@keyframes weather-marquee { to{transform:translate3d(-25%,0,0)} }
 @keyframes weather-content-roll { from{opacity:0;transform:translate3d(0,8px,0)} to{opacity:1;transform:none} }
 @keyframes weather-live-pulse { 0%,45%{box-shadow:0 0 0 0 currentColor} 75%,100%{box-shadow:0 0 0 6px transparent} }
 @keyframes philosophy-marquee { to{transform:translate3d(-50%,0,0)} }

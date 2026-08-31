@@ -181,7 +181,7 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace,no
       <span>{time}{space?" UTC":""}</span>
       <span className="weather-marquee-divider" aria-hidden />
       <span className="mono">{fact.label}</span>
-      {fact.href&&!duplicate?<a href={fact.href} target="_blank" rel="noreferrer">{fact.text} <ExternalArrow /></a>:<span>{fact.text}{fact.href&&<ExternalArrow />}</span>}
+      {fact.href?<a href={fact.href} target="_blank" rel="noreferrer" tabIndex={duplicate?-1:undefined}>{fact.text} <ExternalArrow /></a>:<span>{fact.text}</span>}
       <span className="weather-marquee-divider" aria-hidden />
     </div>;
     return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
@@ -195,8 +195,7 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace,no
         onPointerLeave={event=>{delete document.documentElement.dataset.marqueeHover;setMarqueePlaybackRate(event.currentTarget,1)}}
         onFocusCapture={event=>{document.documentElement.dataset.marqueeHover="true";setMarqueePlaybackRate(event.currentTarget,0)}}
         onBlurCapture={event=>{delete document.documentElement.dataset.marqueeHover;setMarqueePlaybackRate(event.currentTarget,1)}}>
-        <div className="weather-marquee-layer"><div className="weather-marquee-track">{marqueeRun()}{marqueeRun(true)}</div></div>
-        <div className="weather-marquee-focus" aria-hidden><div className="weather-marquee-track">{marqueeRun(true)}{marqueeRun(true)}</div></div>
+        <div className="weather-marquee-track">{marqueeRun()}{marqueeRun(true)}{marqueeRun(true)}{marqueeRun(true)}</div>
       </div>
     </div>;
   };
