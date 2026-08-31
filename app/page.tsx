@@ -2,6 +2,7 @@
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AtmosphereBackground, CitySwitcher, useCityAtmosphere, type EnvironmentMode } from "./atmosphere";
+import ExternalArrow from "./external-arrow";
 import philosophicalQuotesData from "./data/philosophical-quotes.json";
 
 const sections = ["about", "contra", "research", "investments", "projects", "contact"];
@@ -62,8 +63,6 @@ const research = [
   { n: "11", title: "Firefly Creative Campaign Trajectories", meta: "Dataset · Hugging Face", stats: "125 downloads · 137 rows", href: "https://huggingface.co/datasets/contralabs/firefly-creative-campaign-trajectories" },
 ];
 
-function Arrow() { return <span className="arrow" aria-hidden>↗</span>; }
-
 function ContraMark() {
   return <svg className="contra-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fillRule="evenodd" clipRule="evenodd" d="M8.528 4.13A20.95 20.95 0 0 1 4.085 8.554 24.23 24.23 0 0 1 0 10.609v.404h10.996V.011h-.387a24.54 24.54 0 0 1-2.081 4.12Zm4.465-4.119v11.048h10.996v-.403a24.11 24.11 0 0 1-4.085-2.055 20.83 20.83 0 0 1-4.442-4.423A24.34 24.34 0 0 1 13.364.011h-.371Zm10.996 12.94H12.993V24h.371a24.37 24.37 0 0 1 2.098-4.167 20.83 20.83 0 0 1 4.442-4.423 24.1 24.1 0 0 1 4.085-2.055v-.404ZM10.996 24V12.999H0v.403a24.23 24.23 0 0 1 4.086 2.055 20.96 20.96 0 0 1 4.442 4.424A24.55 24.55 0 0 1 10.609 24h.387Z" /></svg>;
 }
@@ -74,7 +73,7 @@ function ContraLogo({ labs = false }: { labs?: boolean }) {
 }
 
 function ExternalLink({ href, children, className = "" }: { href: string; children: React.ReactNode; className?: string }) {
-  return <a href={href} target="_blank" rel="noreferrer" className={`external ${className}`}>{children} <Arrow /></a>;
+  return <a href={href} target="_blank" rel="noreferrer" className={`external ${className}`}>{children} <ExternalArrow /></a>;
 }
 
 function Navigation({ active, citySwitcher, onNavigate }: { active: string; citySwitcher: React.ReactNode; onNavigate: (section: string) => void }) {
@@ -266,7 +265,7 @@ function ProjectRow({ item }: { item: Project }) {
   const [open, setOpen] = useState(false);
   if (item.href) return <div className="project project-link">
     <a className="project-row" data-space-effect="orbit" href={item.href} target="_blank" rel="noreferrer">
-      <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="mono date">{item.date}</span><span className="toggle external-toggle" aria-hidden="true">↗</span>
+      <span className="mono">{item.n}</span><span className="project-title">{item.title}</span><span className="mono date">{item.date}</span><span className="toggle external-toggle" aria-hidden="true"><ExternalArrow /></span>
     </a>
   </div>;
   const src = `https://player.vimeo.com/video/${item.id ?? ""}${item.hash ? `?h=${item.hash}` : ""}`;
@@ -494,7 +493,7 @@ export default function Home() {
   const [active, setActive] = useState("about");
   const [mode, setModeState] = useState<EnvironmentMode>("space");
   const [spaceLoaded, setSpaceLoaded] = useState(true);
-  const { city, setCity, weather, atmosphere } = useCityAtmosphere();
+  const { city, setCity, weather, atmosphere, now } = useCityAtmosphere();
   useEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); }), { rootMargin: "-20% 0px -65%" });
     sections.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el); });
@@ -523,7 +522,7 @@ export default function Home() {
     <AtmosphereBackground atmosphere={atmosphere} />
     {spaceLoaded&&<Suspense fallback={null}><SpaceView active={mode==="space"}/></Suspense>}
     <SiteLoader mode={mode} />
-    <Navigation active={active} onNavigate={setActive} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} />} />
+    <Navigation active={active} onNavigate={setActive} citySwitcher={<CitySwitcher city={city} setCity={setCity} weather={weather} mode={mode} onMode={setMode} onPreloadSpace={()=>import("./space-view")} now={now} />} />
     <main>
       <section id="about" className="hero reveal">
         <div className="hero-topline"><p className="eyebrow mono">Ben Huffman · Founder × Creative Researcher × Angel Investor</p></div>
@@ -540,14 +539,14 @@ export default function Home() {
         <p className="section-label mono">01 / Currently</p>
         <p className="large-copy">I am building <ExternalLink href="https://contra.com/">Contra</ExternalLink> and <ExternalLink href="https://contra.com/labs">Contra Labs</ExternalLink> to help creativity meet opportunity. Contra supports millions of users globally earning hundreds of millions of dollars every year.</p>
         <div className="link-pair">
-          <a href="https://contra.com/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo /><Arrow /></strong><span>Independent work infrastructure</span></a>
-          <a href="https://contra.com/labs" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo labs /><Arrow /></strong><span>Human data + RL infrastructure for creative AI</span></a>
+          <a href="https://contra.com/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo /><ExternalArrow /></strong><span>Independent work infrastructure</span></a>
+          <a href="https://contra.com/labs" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong><ContraLogo labs /><ExternalArrow /></strong><span>Human data + RL infrastructure for creative AI</span></a>
         </div>
       </section>
 
       <section id="research" className="reveal">
         <div className="section-head"><p className="section-label mono">02 / Research + data</p><h2>Research</h2></div>
-        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row" data-space-effect="orbit"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono"><span>{r.meta} <Arrow /></span>{r.stats && <span className="research-stats">{r.stats}</span>}</span></a>)}</div>
+        <div className="research-list">{research.map(r => <a href={r.href} target="_blank" rel="noreferrer" key={r.n} className="research-row" data-space-effect="orbit"><span className="mono">{r.n}</span><strong>{r.title}</strong><span className="research-meta mono"><span>{r.meta} <ExternalArrow /></span>{r.stats && <span className="research-stats">{r.stats}</span>}</span></a>)}</div>
       </section>
 
       <section id="investments" className="reveal">
@@ -563,9 +562,9 @@ export default function Home() {
       <section id="contact" className="reveal contact">
         <div className="section-head"><p className="section-label mono">05 / Get in touch</p><h2>Contact</h2></div>
         <div className="socials">
-          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>X <Arrow /></strong><span>x.com/contraben</span></a>
-          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>LinkedIn <Arrow /></strong><span>linkedin.com/in/ben-huffman-b7b6a8102</span></a>
-          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>Contra <Arrow /></strong><span>contra.com/ben</span></a>
+          <a href="https://x.com/contraben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>X <ExternalArrow /></strong><span>x.com/contraben</span></a>
+          <a href="https://www.linkedin.com/in/ben-huffman-b7b6a8102/" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>LinkedIn <ExternalArrow /></strong><span>linkedin.com/in/ben-huffman-b7b6a8102</span></a>
+          <a href="https://contra.com/ben" target="_blank" rel="noreferrer" data-space-effect="orbit"><strong>Contra <ExternalArrow /></strong><span>contra.com/ben</span></a>
         </div>
       </section>
     </main>

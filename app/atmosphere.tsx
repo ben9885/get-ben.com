@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import dailyFactsData from "./data/daily-facts.json";
+import ExternalArrow from "./external-arrow";
 
 export type City = "SF" | "NY";
 export type EnvironmentMode = "sf" | "ny" | "space";
@@ -16,6 +17,7 @@ export const CITIES = {
 
 type DailyFact = { year: number; text: string; href: string };
 const DAILY_FACTS = dailyFactsData as Record<City | "SPACE", Record<string, DailyFact>>;
+const HYDRATION_DATE = new Date(Date.UTC(2026, 0, 1, 12, 0, 0));
 
 const palettes: Record<string, Oklch[]> = {
   night: [[17,.055,258],[25,.09,260],[31,.09,278],[80,.04,250],[41,.12,270],[35,.11,292],[39,.05,255]],
@@ -124,12 +126,12 @@ async function fetchBothWeather() {
 }
 
 export function useCityAtmosphere() {
-  const [city,setCityState]=useState<City>("NY"),[weather,setWeather]=useState<Partial<Record<City,WeatherState>>>({}),[tick,setTick]=useState(0);
-  useEffect(()=>{const saved=localStorage.getItem("preferredCity")||localStorage.getItem("ben-city");if(saved==="SF"||saved==="NY")setCityState(saved); const hydrate=()=>fetchBothWeather().then(x=>setWeather({SF:x.SF?.data??null,NY:x.NY?.data??null}));hydrate();const w=setInterval(hydrate,15*60*1000),t=setInterval(()=>setTick(v=>v+1),60000);return()=>{clearInterval(w);clearInterval(t)}},[]);
+  const [city,setCityState]=useState<City>("NY"),[weather,setWeather]=useState<Partial<Record<City,WeatherState>>>({}),[now,setNow]=useState(()=>new Date(HYDRATION_DATE));
+  useEffect(()=>{const saved=localStorage.getItem("preferredCity")||localStorage.getItem("ben-city");if(saved==="SF"||saved==="NY")setCityState(saved); const hydrate=()=>fetchBothWeather().then(x=>setWeather({SF:x.SF?.data??null,NY:x.NY?.data??null}));const updateClock=()=>setNow(new Date());const frame=requestAnimationFrame(updateClock);hydrate();const w=setInterval(hydrate,15*60*1000),t=setInterval(updateClock,60000);return()=>{cancelAnimationFrame(frame);clearInterval(w);clearInterval(t)}},[]);
   const setCity=(next:City)=>{setCityState(next);localStorage.setItem("preferredCity",next)};
-  const atmosphere=useMemo(()=>generateAtmosphere(city,weather[city]??null),[city,weather,tick]);
+  const atmosphere=useMemo(()=>generateAtmosphere(city,weather[city]??null,now),[city,weather,now]);
   useEffect(()=>{const r=document.documentElement;r.style.setProperty("--ink",atmosphere.foreground);r.style.setProperty("--line",atmosphere.line);r.style.setProperty("--nav-bg",atmosphere.nav)},[atmosphere]);
-  return {city,setCity,weather:weather[city]??null,atmosphere};
+  return {city,setCity,weather:weather[city]??null,atmosphere,now};
 }
 
 function Layer({a,className}:{a:Atmosphere;className:string}) { return <div className={`atmosphere-layer ${className}`} style={a.style} aria-hidden /> }
@@ -151,8 +153,8 @@ function TelescopeIcon() {
   </svg>;
 }
 
-export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void}) {
-  const now=new Date(),c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(now),orbit=orbitTemperature(now,city);
+export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace,now}:{city:City;setCity:(c:City)=>void;weather:WeatherState;mode:EnvironmentMode;onMode:(mode:EnvironmentMode)=>void;onPreloadSpace?:()=>void;now:Date}) {
+  const c=CITIES[city],isSpace=mode==="space",time=new Intl.DateTimeFormat("en-US",{timeZone:isSpace?"UTC":c.zone,hour:"numeric",minute:"2-digit"}).format(now),orbit=orbitTemperature(now,city);
   useEffect(()=>{
     let lastY=window.scrollY,lastAt=performance.now(),settle=0;
     const onScroll=()=>{
@@ -179,14 +181,14 @@ export function CitySwitcher({city,setCity,weather,mode,onMode,onPreloadSpace}:{
       <span>{time}{space?" UTC":""}</span>
       <span className="weather-marquee-divider" aria-hidden />
       <span className="mono">{fact.label}</span>
-      {fact.href&&!duplicate?<a href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span>{fact.text}{fact.href&&<span aria-hidden> ↗</span>}</span>}
+      {fact.href&&!duplicate?<a href={fact.href} target="_blank" rel="noreferrer">{fact.text} <ExternalArrow /></a>:<span>{fact.text}{fact.href&&<ExternalArrow />}</span>}
       <span className="weather-marquee-divider" aria-hidden />
     </div>;
     return <div className={`weather-tip${space?" is-space":""}`} role="group" aria-label={space?`Estimated spacecraft surface temperature ${orbit.temperature} degrees Fahrenheit, ${orbit.state}, at ${orbit.altitudeKm} kilometers above ${c.name}`:`Current weather and local history for ${c.name}`}>
       <div className="weather-card-body">
         <span className="weather-live mono"><i className="weather-live-dot" aria-hidden />Live · {location}</span>
         <div className="weather-primary"><strong className="weather-metric">{metric}</strong><div className="weather-meta"><span>{condition}</span><span>{time}{space?" UTC":""}</span></div></div>
-        <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <span aria-hidden>↗</span></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
+        <div className="weather-fact"><span className="weather-fact-label mono">{fact.label}</span>{fact.href?<a className="weather-fact-copy" href={fact.href} target="_blank" rel="noreferrer">{fact.text} <ExternalArrow /></a>:<span className="weather-fact-copy">{fact.text}</span>}</div>
       </div>
       <div className="weather-marquee" role="group" aria-label={`Live ${location}: ${metric}, ${condition}, ${time}${space?" UTC":""}. ${fact.label}: ${fact.text}`}
         onPointerEnter={event=>{document.documentElement.dataset.marqueeHover="true";setMarqueePlaybackRate(event.currentTarget,.28)}}
