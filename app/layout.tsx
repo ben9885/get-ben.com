@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
+
+const eyebrowFont = DM_Sans({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-eyebrow",
+});
 
 const canonicalUrl = "https://get-ben.com";
 const title = "Ben Huffman — Founder & CEO of Contra | Contra Labs";
@@ -93,5 +101,5 @@ const profileSchema = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }} />{children}</body></html>;
+  return <html lang="en"><body className={eyebrowFont.variable}><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }} />{children}</body></html>;
 }

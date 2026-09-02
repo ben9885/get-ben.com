@@ -45,7 +45,7 @@ const investments = [
   ["MagicPath", "https://magicpath.ai", "Seed", "2026"], ["Flora", "https://flora.ai", "Seed", "2025"],
   ["Wajo", "https://wajo.ai", "Seed", "2026"], ["Aerial Intelligence", "", "Seed", "2026"],
   ["Kled", "https://kled.ai", "Seed", "2026"], ["Instant", "https://instant.so", "Seed", "2026"],
-  ["Varg.ai", "https://varg.ai", "Seed", "2026"], ["Constellation AI", "", "Pre-seed", "2026"],
+  ["Varg.ai", "https://varg.ai", "Seed", "2026"], ["Mostik.ai", "https://mostik.ai/", "Pre-seed", "2026"],
   ["Acctual", "https://acctual.com", "Seed", "2025"],
 ];
 
